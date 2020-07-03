@@ -1,335 +1,391 @@
 <template>
-  <div class="smain qxsz">
-    <el-card class="box-card botom" shadow="false" :body-style="{ padding: '0px' }">
-      <div slot="header" class="clearfix">
-        <span>菜单列表</span>
-        <div style="margin:5px"></div>
+  <div>
+    <en-table-layout
+      :tableData="tableData.records"
+      :loading="loading"
+    >
+      <div slot="toolbar" class="inner-toolbar">
+        <div class="toolbar-btns">
+          <el-button size="mini"  type="warning" icon="el-icon-circle-plus-outline" @click="handleAddRole">添加</el-button>
+        </div>
       </div>
-      <el-tree :data="zyglmenu" node-key="id" :expand-on-click-node="false" default-expand-all :props="defaultProps">
-        <span class="custom-tree-node" slot-scope="{ node, data }">
-        <span>{{ node.label }}</span>
-        <span>
-        <el-button  type="text" v-show="data.children" size="mini" @click="() => setend(data,'增加','/card/resource/addResourceMenu.do')">添加</el-button>
-        <el-button  type="text"  size="mini" @click="() => setend(data,'修改','/card/resource/modifyResourceMenu.do')">修改</el-button>
-        <el-button  type="text"  size="mini"  @click="() => removeRow(data,node,'菜单','/card/resource/deleteResourceMenu.do')">删除</el-button>
-        </span>
-        </span>
-        <!-- </span> -->
-      </el-tree>
-    </el-card>
-    <el-card class="feature" shadow="false" :body-style="{ padding: '0px' }">
-      <div slot="header" class="clearfix">
-        <span>功能列表</span>
-        <el-button style="float: right;margin-left: 10px;" type="primary" size="mini" @click="setrole({addrent:'',name:'',id:''},'新增','/card/resource/addResourceFunction.do')">新增</el-button>
-      </div>
-      <el-table :data="tableData" border v-loading="loading">
-        <!-- <el-table-column type="index" label="序号" align="center"></el-table-column> -->
-        <el-table-column type="index" label="序号" width="80" align="center"></el-table-column>
-        <el-table-column prop="name" label="功能名称" align="center"></el-table-column>
-        <el-table-column prop="url" label="功能URL" align="center"></el-table-column>
-        <el-table-column fixed="right" label="操作" width="100" align="center">
+
+      <template slot="table-columns">
+        <el-table-column prop="role_name" label="角色名称"/>
+        <el-table-column prop="role_describe" label="角色描述"/>
+        <el-table-column label="操作">
           <template slot-scope="scope">
-            <el-button type="text" size="small" @click="setrole(scope.row,'修改','/card/resource/modifyResourceFunction.do')">修改</el-button>
-            <el-button type="text" size="small" @click="removeRow(scope.row,'','功能','/card/resource/deleteResourceFunction.do')">刪除</el-button>
+            <el-button
+              size="mini"
+              type="primary"
+              @click="handleEditRole(scope.row)">编辑</el-button>
+            <el-button
+              size="mini"
+              type="danger"
+              @click="handleDeleteRole(scope.row)">删除</el-button>
           </template>
         </el-table-column>
-      </el-table>
-    </el-card>
-    <el-dialog title="功能信息" :visible.sync="dialogVisible" width="30%">
-      <el-form :model="formInline" :rules="rules2" size="small" ref="formInline" class="demo-form-inline" label-width="80px">
-        <el-form-item label="功能名称" prop="name">
-          <el-input v-model="formInline.name" placeholder="功能名称"></el-input>
+      </template>
+
+      <el-pagination
+        v-if="tableData"
+        slot="pagination"
+        @size-change="handlePageSizeChange"
+        @current-change="handlePageCurrentChange"
+        :current-page="tableData.page_no"
+        :page-sizes="[10, 20, 50, 100]"
+        :page-size="tableData.page_size"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="tableData.total">
+      </el-pagination>
+    </en-table-layout>
+    <el-dialog
+      :title="permissionForm.role_id ? '编辑角色' : '添加角色'"
+      :visible.sync="dialogVisible"
+      width="70%"
+      @open="handleDialogOpen"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+    >
+
+      <el-form :model="permissionForm" :rules="permissionRules" ref="permissionForm" label-width="200px" class="demo-ruleForm">
+        <el-form-item label="角色名称" prop="role_name">
+          <el-input v-model="permissionForm.role_name"></el-input>
         </el-form-item>
-        <el-form-item label="功能地址" prop="addrent">
-          <el-input v-model="formInline.addrent" placeholder="功能地址"></el-input>
+        <el-form-item label="角色描述" prop="role_describe">
+          <el-input v-model="permissionForm.role_describe"></el-input>
         </el-form-item>
-        <!--  <el-form-item label="功能序号" prop="id">
-          <el-input v-model="formInline.id" placeholder="功能序号"></el-input>
-        </el-form-item> -->
+        <el-form-item label="角色权限" prop="permission">
+          <el-checkbox :indeterminate="allIndeterminate" v-model="allCheck" @change="handleCheckAll">全部选择</el-checkbox>
+          <div v-for="(item, index) in permissions" :key="item.identifier" class="level_1">
+            <el-row :gutter="20">
+              <el-col :span="4">
+                <el-checkbox
+                  v-model="item.checked"
+                  :label="item.title"
+                  :indeterminate="checkIndeterminate(item.children)"
+                  @change="handleCheckboxChanged(item)"
+                ></el-checkbox>
+              </el-col>
+              <el-col :span="20">
+                <div v-for="(_item, _index) in item.children" :key="_item.identifier" class="checkbox-dropdown">
+                  <el-checkbox
+                    v-model="_item.checked"
+                    :label="_item.title"
+                    :indeterminate="checkIndeterminate(_item.children)"
+                    @change="handleCheckboxChanged(_item, item)"
+                  ></el-checkbox>
+                  <template v-if="_item.children && _item.children.length">
+                    <el-dropdown trigger="click" split-button :hide-on-click="false">
+                      <el-dropdown-menu slot="dropdown">
+                        <el-dropdown-item v-for="(__item, __index) in _item.children" :key="__item.identifier">
+                          <el-checkbox
+                            v-model="__item.checked"
+                            :label="__item.title"
+                            @change="handleCheckboxChanged(__item, _item)"
+                          ></el-checkbox>
+                        </el-dropdown-item>
+                      </el-dropdown-menu>
+                    </el-dropdown>
+                  </template>
+                </div>
+              </el-col>
+            </el-row>
+          </div>
+        </el-form-item>
+
       </el-form>
       <span slot="footer" class="dialog-footer">
-    <el-button @click="dialogVisible = false">取 消</el-button>
-    <el-button type="primary" @click="setrole(false)">确 定</el-button>
-  </span>
-    </el-dialog>
-    <el-dialog title="修改菜单列表" :visible.sync="dialogVisibleMenu" width="40%">
-      <el-form :model="formInlineMenu" :rules="rules2" size="small" ref="formInlineMenu" class="demo-form-inline" label-width="100px">
-        <el-form-item label="资源名称" prop="name">
-          <el-input v-model="formInlineMenu.name" placeholder="角色名称"></el-input>
-        </el-form-item>
-        <el-form-item label="资源地址" prop="path">
-          <el-input v-model="formInlineMenu.path" placeholder="角色序号"></el-input>
-        </el-form-item>
-        <el-form-item label="资源图标名称" prop="tbmc">
-          <el-input v-model="formInlineMenu.tbmc" placeholder="角色序号"></el-input>
-        </el-form-item>
-      </el-form>
-      <span slot="footer" class="dialog-footer">
-    <el-button @click="dialogVisibleMenu = false">取 消</el-button>
-    <el-button type="primary" @click="setend(false)">确 定</el-button>
-  </span>
+        <el-button @click="cancelRolePermission">取 消</el-button>
+        <el-button type="primary" @click="saveRolePermission">确 定</el-button>
+      </span>
     </el-dialog>
   </div>
 </template>
 <script>
-import request from '@/utils/request'
-import { Message } from 'element-ui'
-import { mapGetters } from 'vuex'
 
 export default {
   name: 'txmccx',
   data() {
-    var validdlmust = (rule, value, callback) => {
-      if (!value) {
-        return callback(new Error('内容不能为空'));
-      } else {
-        value = value.toString();
-        value = (!!value) ? value.replace(/(^\s*)|(\s*$)/g, '') : '';
-        if (!value) return callback(new Error('内容不能为空'));
-        setTimeout(() => {
-          callback();
-        }, 400);
-      }
-    };
     return {
-      formInline: {
-        addrent: '',
-        name: '',
-        id: '',
+      dialogVisible:false,
+      // 列表loading状态
+      loading: false,
+      // 列表参数
+      params: {
+        page_no: 1,
+        page_size: 10
       },
-      dialogVisible: false,
-      formInlineMenu: {
-        path: '',
-        name: '',
-        id: '',
+      // 列表数据
+      tableData: '',
+      /** 权限 表单 */
+      permissionForm: {
+        role_name: '',
+        role_describe:'',
       },
-      dialogVisibleMenu: false,
-      rules2: {
-        addrent: [{ validator: validdlmust, trigger: 'blur' }],
-        name: [{ validator: validdlmust, trigger: 'blur' }],
-        tbmc: [{ validator: validdlmust, trigger: 'blur' }],
-        path: [{ validator: validdlmust, trigger: 'blur' }],
+      /** 权限 表单规则 */
+      permissionRules: {
+        role_name: [
+          { min: 1, max: 10, message: '长度在 1 到 10 个字符', trigger: 'blur' }
+        ]
       },
-      tableData: [],
-      orderBy: '',
-      loading: true,
-      defaultProps: { //树结构
-        children: 'children',
-        label: 'name'
-      },
-      zyglmenu: '', //已选中菜单
-    };
-  },
-  computed: {
-    ...mapGetters([
-      'permission_routers', //可授权菜单
-    ]),
-  },
-  watch: {
-    dialogVisible: function(data, olddata) {
-      if (data) {} else { this.$refs['formInline'].resetFields() }
-    },
-    dialogVisibleMenu: function(data, olddata) {
-      if (data) {} else { this.$refs['formInlineMenu'].resetFields() }
+      permissions: [],
+      // 全选状态
+      allCheck: false,
+      // 全选不确定状态
+      allIndeterminate: false
     }
   },
-  created: function() {
-    this.zyglmenu = this.permission_routers;
-    this.onloadtable();
+  mounted() {
+    this.GET_RoleList()
   },
   methods: {
-    setend(row, lx, url) { //修改、添加菜单
-      // debugger;
-      if (row) {
-        this.formInlineMenu = { path: row.path, name: row.name, tbmc: row.meta.icon, id: row.id, lx: lx, url: url };
-        if (lx === "增加") this.formInlineMenu = { path: '', name: '', tbmc: '', id: row.id, lx: lx, url: url };
-        this.dialogVisibleMenu = true;
-        return;
-      }
-      let data = {
-        path: this.formInlineMenu.path,
-        name: this.formInlineMenu.name,
-        tbmc: this.formInlineMenu.tbmc,
-        id: this.formInlineMenu.id,
-      };
-      this.$refs['formInlineMenu'].validate((valid) => {
+    /** 分页大小发生改变 */
+    handlePageSizeChange(size) {
+      this.params.page_size = size
+      this.GET_RoleList()
+    },
+
+    /** 分页页数发生改变 */
+    handlePageCurrentChange(page) {
+      this.params.page_no = page
+      this.GET_RoleList()
+    },
+
+    /** 添加角色 */
+    handleAddRole() {
+      this.dialogVisible=true
+      this.role_id = 0
+      API_Menus.getMenusChildren().then(res => {
+        this.$set(this, 'permissions', res)
+        this.countAllPermissions()
+      })
+    },
+
+    /** 编辑角色 */
+    handleEditRole(row) {
+      this.dialogVisible=true
+      this.permissionForm.role_id=row.role_id
+      API_Menus.getMenusChildren().then(res => {
+        // 如果this.role_id 不为0，说明是编辑。
+        API_Auth.getRole(row.role_id).then(response => {
+          this.role_id = response.role_id
+          this.permissionForm.role_name = response.role_name
+          this.permissionForm.role_describe = response.role_describe
+          const checkedIds = this.expandRouters(response.menus)
+          this.$set(this, 'permissions', this.filterRoleRouter(res, checkedIds))
+          this.countAllPermissions()
+        })
+      })
+    },
+
+    /** 删除角色 */
+    handleDeleteRole(row) {
+      this.$confirm('确定要删除这个角色吗？', '提示', { type: 'warning' }).then(() => {
+        API_Auth.deleteRole(row.role_id).then(() => {
+          this.$message.success('删除成功！')
+          this.GET_RoleList()
+        })
+      }).catch(() => {})
+    },
+
+    /** 获取角色列表 */
+    GET_RoleList() {
+      this.loading = true
+      API_Auth.getRoleList(this.params).then(response => {
+        this.loading = false
+        this.tableData = response
+      }).catch(() => { this.loading = false })
+    },
+    handleDialogOpen() {
+
+
+    },
+    /** 取消编辑，清空表单*/
+    cancelRolePermission(){
+      this.dialogVisible=false
+      this.$refs['permissionForm'].resetFields()
+    },
+    /** 保存角色权限 */
+    saveRolePermission() {
+      this.$refs['permissionForm'].validate(valid => {
         if (valid) {
-          // debugger;
-          if (this.formInlineMenu.lx === "增加") {
-            request({ url: this.formInlineMenu.url, method: 'post', data: data }).then(response => {
-              if (response.data.code == '1') {
-                this.dialogVisibleMenu = false;
-                this.$message({ type: 'success', message: response.data.msg });
-                this.onloadtable1();
-              } else {
-                this.$message({ type: 'error', message: response.data.msg });
-              }
-            }).catch(error => {
-              Message.error("error：" + "请检查网络是否连接");
-            });
-          } else {
-            request({ url: this.formInlineMenu.url, method: 'post', data: data }).then(response => {
-              if (response.data.code == '1') {
-                this.dialogVisibleMenu = false;
-                this.$message({ type: 'success', message: response.data.msg });
-                this.onloadtable1();
-              } else {
-                this.$message({ type: 'error', message: response.data.msg });
-              }
-            }).catch(error => {
-              Message.error("error：" + "请检查网络是否连接");
-            });
+          const params = {
+            ...this.permissionForm,
+            menus: this.permissions
+          }
+          this.role_id === 0
+            ? API_Auth.addRole(params).then(() => saveSuccess())
+            : API_Auth.editRole(this.role_id, params).then(() => saveSuccess())
+          const saveSuccess = () => {
+            this.$message.success('保存成功！')
+            this.GET_RoleList()
           }
         } else {
-          this.$message({ message: '表单验证未通过', type: 'error' });
-          return false;
+          this.$message.error('表单填写有误，请检查！')
+          return false
         }
-      });
+      })
+      this.dialogVisible=false
+      this.$refs['permissionForm'].resetFields()
     },
-    setrole(row, lx, url) { //修改、添加 功能
-      if (row) {
-        this.formInline = { addrent: row.url, name: row.name, id: row.id, lx: lx, url: url };
-        this.dialogVisible = true;
-        return;
+
+    /**  权限选择操作*/
+
+    /** 全选 */
+    handleCheckAll(checked) {
+      this.allIndeterminate = false
+      this.$set(this, 'permissions', this.setPermissionsCheck(this.permissions, checked))
+    },
+
+    /** 设置权限状态 */
+    setPermissionsCheck(permissions, checked) {
+      const perm =  JSON.parse(JSON.stringify(permissions))
+      perm.map(item => {
+        item.checked = checked
+        this.$set(item, 'checked', checked)
+        if (item.children && item.children.length) {
+          this.$set(item, 'children', this.setPermissionsCheck(item.children, checked))
+        }
+      })
+      return perm
+    },
+    /** 检测是否有不确定性 */
+    checkIndeterminate(permissions) {
+      if (!Array.isArray(permissions)) return false
+      const _len = permissions.length
+      const __len = permissions.filter(item => item.checked).length
+      return (__len !== 0) && (_len !== __len)
+    },
+    /** 选择 */
+    handleCheckboxChanged(item, parent) {
+      if (item.children && item.children.length) {
+        this.$set(item, 'children', this.setPermissionsCheck(item.children, item.checked))
       }
-      let data = {
-        addrent: this.formInline.addrent,
-        name: this.formInline.name,
-        id: this.formInline.id,
-      };
-      this.$refs['formInline'].validate((valid) => {
-        if (valid) {
-          if (this.formInline.lx == "新增") {
-            request({ url: this.formInline.url, method: 'post', data: data }).then(response => {
-              if (response.data.code == '1') {
-                this.dialogVisible = false;
-                this.$message({ type: 'success', message: response.data.msg });
-                this.onloadtable();
-
-              } else {
-                this.$message({ type: 'error', message: response.data.msg });
-              }
-
-            }).catch(error => {
-              Message.error("error：" + "请检查网络是否连接");
-            });
-          } else {
-            request({ url: this.formInline.url, method: 'post', data: data }).then(response => {
-              if (response.data.code == '1') {
-                this.dialogVisible = false;
-                this.$message({ type: 'success', message: response.data.msg });
-                this.onloadtable();
-              } else {
-                this.$message({ type: 'error', message: response.data.msg });
-              }
-            }).catch(error => {
-              Message.error("error：" + "请检查网络是否连接");
-            });
-          }
-          // // request({ url: this.formInline.url, method: 'post', data: data }).then(response => {
-          // this.dialogVisible = false;
-          // this.$message({ type: 'success', message: this.formInline.lx + '功能 “ ' + this.formInline.name + ' ” ' + '成功' });
-          // this.onloadtable();
-          // // }).catch(error => {
-          // // Message.error("error：" + "请检查网络是否连接");
-          // // });
-        } else {
-          this.$message({ message: '表单验证未通过', type: 'error' });
-          return false;
+      this.countAllPermissions()
+      this.countParentChecked()
+    },
+    /** 获取所有权限展开后的长度、被选中的长度 */
+    countAllPermissions(permissions) {
+      permissions = permissions || this.permissions
+      const _list = []
+      permissions.forEach(item => {
+        _list.push(item)
+        if (item.children) _list.push(...this.countAllPermissions(item.children))
+      })
+      const length = _list.length
+      const length_checked = _list.filter(_item => _item.checked).length
+      this.allCheck = length === _list.filter(_item => _item.checked).length
+      this.allIndeterminate = (length_checked !== 0) && (length !== length_checked)
+      return _list
+    },
+    /** 计算所有父辈的选中状态 */
+    countParentChecked(permissions) {
+      permissions = permissions || this.permissions
+      permissions.forEach(item => {
+        if (item.children && item.children.length) {
+          this.countParentChecked(item.children)
+          const lenght = item.children.length
+          const checked_length = item.children.filter(_item => _item.checked).length
+          item.checked = !!checked_length
         }
-      });
+      })
     },
-    removeRow(row, node, lx, url) { //删除菜单、功能
-      this.$confirm('此操作将删除' + lx + ' “ ' + row.name + ' “ ,  是否继续?', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        request({ url: url, method: 'post', data: { id: row.id } }).then(response => {
-          if (response.data.code == '1') {
-            this.dialogVisible = false;
-            this.$message({ type: 'success', message: response.data.msg });
-            this.onloadtable();
-            this.onloadtable1();
-          } else {
-            this.$message({ type: 'error', message: response.data.msg });
-          }
-          // this.onloadtable1();
-        }).catch(error => {
-          Message.error("error：" + "请检查网络是否连接");
-        });
-      }).catch(() => {
-        this.$message({ type: 'info', message: '已取消删除' });
-      });
+
+    /** 展开路由的identifier */
+    expandRouters(menus) {
+      const routers = []
+      menus.forEach(item => {
+        item.checked && routers.push(item.identifier)
+        if (item.children && item.children.length) {
+          routers.push(...this.expandRouters(item.children))
+        }
+      })
+      return routers
     },
-    onloadtable() { //查询功能
-      // var txmxcxData = {};
-      console.log('刷新了功能');
-      request({ url: 'card/resource/findResourceByRoleId.do', method: 'post', data: {} }).then(response => {
-        this.loading = false;
-        this.tableData = response;
-        // [{ "id": 1610101572003, "name": "数据字典", "pid": 1610101532003, "seq": 71, "url": "/systemmenu/systemdatadic.do" }];
-      }).catch(error => {
-        Message.error("error：" + "请检查网络是否连接");
-      });
-    },
-    onloadtable1() { //查询菜单
-      this.$store.dispatch('GetUserInfo').then(() => {
-        // console.log(this.$store);
-        // debugger;
-        this.zyglmenu = this.$store.state.user.routers;
-      }).catch(() => {});
-      // request({ url: 'mall/sh/searchsh.do', method: 'post', data: txmxcxData }).then(response => {
-      // this.zyglmenu = [];
-      console.log('我给菜单刷新了')
-      // }).catch(error => {
-      // Message.error("error：" + "请检查网络是否连接");
-      // });
+    /** 递归筛选被选中的路由 */
+    filterRoleRouter(routers, ids) {
+      const _routers = []
+      routers.forEach(item => {
+        if (ids.includes(item.identifier) || item.hidden) {
+          item.checked = true
+        } else {
+          item.checked = false
+        }
+        if (item.children) {
+          this.$set(item, 'children', this.filterRoleRouter(item.children, ids))
+        }
+        _routers.push(item)
+      })
+      return _routers
     }
   }
+
 };
 
 </script>
-<style scoped>
-.custom-tree-node {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 14px;
-  padding-right: 8px;
-}
 
-.smain {
-  padding: 10px;
-  position: relative;
-}
-
-.smain:before,
-.smain:after {
-  display: table;
-  content: "";
-  clear: both
-}
-
-.box-card {
-  width: 35%;
-  position: relative;
-  float: left;
-  margin-right: 30px;
-}
-
-.feature {
-  /*position: absolute;*/
-  width: 60%;
-}
-
-.el-table {
-  border: 0;
-}
-
-.el-form-item {
-  margin: 15px 0;
-}
-
+<style type="text/scss" lang="scss" scoped>
+  .permission-container {
+    padding: 10px;
+    background-color: #fff;
+  }
+  .level_1 {
+    padding: 15px 0;
+    border-bottom: 1px dashed #e7e7e7;
+    &:last-child{ border-bottom: none }
+  }
+  /deep/ {
+    .el-form-item__label {
+      padding-top: 15px;
+    }
+    .el-form-item__content {
+      border-left: 1px solid #e7e7e7;
+      padding-left: 20px;
+      padding-top: 15px;
+      .el-form-item__error {
+        padding-left: 20px;
+      }
+    }
+    .el-form-item:last-child {
+      .el-form-item__content {
+        padding-top: 0;
+      }
+    }
+    .el-form-item:not(:first-child) {
+      border-top: 1px solid #e7e7e7;
+      position: relative;
+      &::after {
+        content: ' ';
+        width: 1px;
+        height: 22px;
+        background-color: #e7e7e7;
+        position: absolute;
+        top: -22px;
+        left: 200px;
+      }
+    }
+    .el-button-group {
+      display: inline-block;
+      .el-button {
+        display: inline-block;
+        padding: 0;
+        border: none;
+        &:focus, &:hover {
+          color: #606266;
+          border-color: #fff;
+          background-color: #fff;
+        }
+      }
+    }
+  }
+  .checkbox-dropdown {
+    display: inline-block;
+    min-width: 130px;
+    cursor: pointer;
+    .checked {
+      color: #409EFF
+    }
+  }
 </style>
+

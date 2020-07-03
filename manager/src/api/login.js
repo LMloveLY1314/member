@@ -6,7 +6,7 @@ export function LoginByUsername(data) {
   //   password
   // }
   return request({
-    url: 'card/login.do',
+    url: 'sys/login',
     method: 'post',
     data
   });

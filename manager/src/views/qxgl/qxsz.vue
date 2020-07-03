@@ -1,379 +1,354 @@
 <template>
-  <div class="smain qxsz">
-    <el-card class="box-card" shadow="false" :body-style="{ padding: '0px' }">
-      <div slot="header" class="clearfix">
-        <span>角色列表</span>
-        <el-button style="float: right;margin-left: 10px;" type="primary" size="mini" @click="setrole({ name: '', code: '' },'新增','card/role/add.do')">新增</el-button>
+  <div style="margin-top: 10px">
+    <en-table-layout :tableData="tableData.records">
+      <!--      工具栏-->
+      <div slot="toolbar" class="inner-toolbar">
+        <div class="toolbar-btns">
+          <el-button
+            size="mini"
+            type="warning"
+            icon="el-icon-circle-plus-outline"
+            @click="handleAddAdmin"
+          >添加</el-button>
+        </div>
+        <div class="toolbar-search">
+          <search
+            @search="searchEvent"
+          >
+          </search>
+        </div>
       </div>
-      <el-table :data="tableData" border style="width: 100%" v-loading="loading" max-height="260" highlight-current-row @current-change="handleCurrentChange">
-        <!-- <el-table-column fixed prop="name" style="color:red;height:20px;" label="排列序号" align="center"></el-table-column> -->
-        <el-table-column fixed prop="id" label="角色编号" align="center"></el-table-column>
-        <el-table-column fixed prop="name" label="角色名称" align="center"></el-table-column>
-        <el-table-column fixed="right" label="操作" align="center" width="100">
+      <template slot="table-columns">
+        <el-table-column prop="face" label="管理员头像">
+          <template slot-scope="scope"><img :src="scope.row.face" class="face-image"></template>
+        </el-table-column>
+        <el-table-column prop="uname" label="管理员名称"/>
+        <el-table-column prop="role_name" label="所属角色"/>
+        <el-table-column prop="real_name" label="管理员真实姓名"/>
+        <el-table-column
+          label="创建时间">
           <template slot-scope="scope">
-            <el-button type="text" size="small" @click="setrole(scope.row,'修改','card/role/modifyRole.do')">修改</el-button>
-            <el-button type="text" size="small" @click="deletrole(scope.row)">刪除</el-button>
+            <span v-if="scope.row.date_line === null">NULL</span>
+            <span v-else>{{ scope.row.date_line | unixToDate }}</span>
           </template>
         </el-table-column>
-      </el-table>
-    </el-card>
-    <!-- <div style="display: inline-block;"> -->
-    <el-card class="body" shadow="false" :body-style="{ padding: '0px' }">
-      <div slot="header" class="clearfix">
-        <span>可授予功能列表</span>
-        <el-button style="float: right;" type="primary" size="mini" @click="CapabilitiesClick">保存</el-button>
-        <el-checkbox style="float: right; padding: 6px 10px 3px 0" :indeterminate="isIndeterminate" v-model="checkAll" @change="handleCheckAllChange">全选</el-checkbox>
-      </div>
-      <div class="checkstyle">
-        <el-checkbox-group v-model="checkList" @change="handleCheckedCitiesChange">
-          <div class="checkliststy" v-for="item in checkopt" :key="item.id+Math.random()*1000">
-            <el-checkbox :label="item">{{item.name}}</el-checkbox>
-          </div>
-        </el-checkbox-group>
-      </div>
-    </el-card>
-    <!-- </div> -->
-    <el-card class="box-card botom" shadow="false" :body-style="{ padding: '0px' }">
-      <div slot="header" class="clearfix">
-        <span>可授予菜单列表</span>
-        <el-button style="float: right;margin-left: 10px;" type="primary" size="mini" @click="onloadcdmenu">保存</el-button>
-        <el-button style="float: right;" type="primary" size="mini" @click="reset">重置</el-button>
-      </div>
-      <el-tree ref="tree" :data="permission_routers" show-checkbox node-key="id" @check="handleCheckChange" default-expand-all :default-checked-keys="cdMenu" :props="defaultProps">
-      </el-tree>
-    </el-card>
-    <el-dialog :title=title :visible.sync="dialogVisible" width="30%">
-      <el-form :model="formInline" :rules="rules2" size="small" ref="formInline" class="demo-form-inline" label-width="80px">
-        <el-form-item label="角色名称" prop="name">
-          <el-input v-model="formInline.name" placeholder="角色名称"></el-input>
+
+        <el-table-column
+          label="上次登录时间">
+          <template slot-scope="scope">
+            <span v-if="scope.row.last_login === null">NULL</span>
+            <span v-else>{{ scope.row.last_login | unixToDate }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="login_count"
+          label="登录次数">
+        </el-table-column>
+        <el-table-column
+          prop="sex"
+          label="性别"
+          :formatter="formatterSex" width="80px">
+        </el-table-column>
+        <el-table-column label="操作" width="150">
+          <template slot-scope="scope">
+            <el-button
+              size="mini"
+              type="primary"
+              @click="handleEditAdmin(scope.$index, scope.row)"
+            >编辑</el-button>
+            <el-button
+              size="mini"
+              type="danger"
+              @click="handleDeleteAdmin(scope.$index, scope.row)"
+            >删除</el-button>
+          </template>
+        </el-table-column>
+      </template>
+      <!--    分页工具栏        -->
+      <el-pagination
+        v-if="tableData"
+        slot="pagination"
+        @size-change="handlePageSizeChange"
+        @current-change="handlePageCurrentChange"
+        :current-page="tableData.current"
+        :page-sizes="[10, 20, 50, 100]"
+        :page-size="tableData.size"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="tableData.total">
+      </el-pagination>
+    </en-table-layout>
+    <el-dialog
+      :title="adminForm.id ? '编辑管理员' : '添加管理员'"
+      :visible.sync="dialogVisible"
+      width="500px"
+      @open="handleDialogOpen"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+    >
+      <el-form :model="adminForm" :rules="adminRules" ref="adminForm" label-width="120px">
+        <el-form-item label="管理员名称" prop="uname">
+          <span v-if="adminForm.id">{{ adminForm.uname }}</span>
+          <el-input v-else v-model="adminForm.uname" :maxlength="20" clearable placeholder="请输入管理员名称"></el-input>
         </el-form-item>
-        <!--         <el-form-item label="角色序号" prop="code">
-          <el-input v-model="formInline.code" placeholder="角色序号"></el-input>
-        </el-form-item> -->
+        <el-form-item label="管理员密码" prop="password">
+          <el-input type="password" v-model="adminForm.password" :maxlength="20" clearable :placeholder="adminForm.id ? '不修改请留空' : '6-20位数字、英文字母'"></el-input>
+        </el-form-item>
+        <el-form-item label="所属角色" prop="role_id">
+          <el-select
+
+            v-model="adminForm.role_id"
+            :disabled="adminForm.founder === 1"
+            :placeholder="adminForm.founder === 1 ? '超级管理员无须选择角色' : '请选择角色'"
+            @change="roleChange"
+            clearable
+          >
+            <el-option
+              v-for="item in rolesOptions"
+              :key="item.role_id"
+              :label="item.role_name"
+              :value="item.role_id">
+            </el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="管理员真实姓名" prop="real_name">
+          <el-input v-model="adminForm.real_name" :maxlength="20" clearable></el-input>
+        </el-form-item>
+        <el-form-item label="备注信息" prop="remark">
+          <el-input v-model="adminForm.remark" :maxlength="20" clearable></el-input>
+        </el-form-item>
+        <el-form-item label="管理员头像" prop="face">
+          <el-upload
+            :action="uploadApi"
+            :on-success="(res) => { adminForm.face = res.url }"
+            :on-remove="() => { adminForm.face = '' }"
+            :file-list="adminForm.face"
+            list-type="picture">
+            <el-button size="small" type="primary">点击上传</el-button>
+            <div slot="tip" class="el-upload__tip">建议上传jpg/png文件，且不超过1MB</div>
+          </el-upload>
+        </el-form-item>
+        <el-form-item label="超级管理员">
+          <el-radio v-model="adminForm.founder" :label="1">是</el-radio>
+          <el-radio v-model="adminForm.founder" :label="0">否</el-radio>
+        </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
-    <el-button @click="dialogVisible = false">取 消</el-button>
-    <el-button type="primary" @click="setrole(false)">确 定</el-button>
-  </span>
+        <el-button @click="dialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="submitAddRepairForm">确 定</el-button>
+      </span>
     </el-dialog>
   </div>
 </template>
 <script>
-import request from '@/utils/request'
-import { Message } from 'element-ui'
-import { mapGetters } from 'vuex'
+
+  import Search from '@/components/TableSearch/index'
 export default {
   name: 'txmccx',
-  data() {
-    var validdlcode = (rule, value, callback) => {
-      if (!value) {
-        return callback(new Error('角色序号不能为空'));
-      } else {
-        value = value.replace(/(^\s*)|(\s*$)/g, ''); //去首尾空格
-        if (!value) {
-          return callback(new Error('角色序号不能为空'));
-        }
-      }
-      setTimeout(() => {
-        callback();
-      }, 400);
-    };
-    var validdlname = (rule, value, callback) => {
-      if (!value) {
-        return callback(new Error('角色名称不能为空'));
-      } else {
-        value = value.replace(/(^\s*)|(\s*$)/g, ''); //去首尾空格
-        if (!value) {
-          return callback(new Error('角色名称不能为空'));
-        }
-      }
-      setTimeout(() => {
-        callback();
-      }, 400);
-    };
-    return {
-      formInline: {
-        code: '',
-        name: '',
-        lx: '',
-      },
-      rules2: {
-        // code: [{ validator: validdlcode, trigger: 'blur' }],
-        name: [{ validator: validdlname, trigger: 'blur' }],
-      },
-      dialogVisible: false,
-      loading: true,
-      currentRow: {}, //角色当前行
-      tableData: [], //角色
-      checkAll: false, //全选
-      isIndeterminate: true,
-      checkList: [], //以选中弄的功能
-      checkopt: [],
-      defaultProps: { //树结构
-        children: 'children',
-        label: 'name'
-      },
-      cdMenu: [], //已选中菜单
-      title: '',
-      listkeyid: '',
-    };
+  components:{
+    Search
   },
-  computed: {
-    ...mapGetters([
-      'permission_routers', //可授权菜单
-    ]),
-  },
-  watch: {
-    dialogVisible: function(data, olddata) {
-      this.title = this.formInline.lx + '角色信息';
-      if (data) {} else { this.$refs['formInline'].resetFields() }
+  data(){
+    return{
+      uploadApi:'http://localhost:7003/uploaders',
+      /** 列表loading状态 */
+      loading: false,
+      /** 编辑管理员窗体*/
+      dialogVisible:false,
+      /** 列表参数 */
+      params: {
+        page_no: 1,
+        page_size: 10,
+      },
+      /** 列表数据*/
+      tableData: '',
+
+      /**添加管理员表单*/
+      adminForm:{
+        role_name:'',
+      },
+      /**添加管理员的验证规则*/
+      adminRules: {
+
+      },
+      rolesOptions: [],
     }
   },
-  created: function() {
-    this.onloadtable1();
-    this.onloadtable2();
-    this.onloadtable3();
-  },
-  methods: {
-    handleCurrentChange(val) {
-      this.currentRow = val;
-      this.onloadtable2(val);
-      this.setCheckedKeys();
-      this.onloadtable3(val);
+  methods:{
+    //发送请求，获取维修师傅列表数据
+    GET_AdminList() {
+      this.loading = true
+      API_Auth.getAdminList(this.params).then(response => {
+        this.loading = false
+        //响应的数据赋值给tableData
+        this.tableData = response
+      }).catch(() => (this.loading = false))
     },
-    handleCheckAllChange(val) {
-      this.checkList = val ? this.checkopt : [];
-      this.isIndeterminate = false;
-    },
-    handleCheckedCitiesChange(value) {
-      console.log(this.checkList);
-    },
-    handleCheckChange(data, checked) {
-      // debugger;
-      this.listkeyid = checked.checkedKeys + ',' + checked.halfCheckedKeys;
-    },
-    onloadcdmenu() {
-      var txmxcxData = {
-        roleId: this.currentRow.id,
-        checkresponMenu: this.listkeyid,
-      };
-      request({ url: 'card/roleResource/addRoleResourceMenu.do', method: 'post', data: txmxcxData }).then(response => {
-        if (response.data.code == "1") {
-          this.$message({ type: 'success', message: response.data.msg });
-          this.onloadtable3();
-        } else {
-          this.$message({ type: 'error', message: response.data.msg });
-        }
-      }).catch(error => {
-        Message.error("error：" + "请检查网络是否连接");
-      });
-    },
-    CapabilitiesClick() {
-      var checkrespon = []; //角色已有的功能编号
-      this.checkList.forEach(item => {
-        checkrespon.push(item.id);
-      })
-      var txmxcxData = {
-        roleId: this.currentRow.id,
-        checkrespon: checkrespon,
-      };
-      request({ url: 'card/roleResource/addRoleResource.do', method: 'post', data: txmxcxData }).then(response => {
-        if (response.data.code == "1") {
-          this.$message({ type: 'success', message: response.data.msg });
-          this.onloadtable2(this.currentRow);
-        } else {
-          this.$message({ type: 'error', message: response.data.msg });
-        }
-      }).catch(error => {
-        Message.error("error：" + "请检查网络是否连接");
-      });
-    },
-    reset() {
-      this.$refs.tree.setCheckedKeys([]);
-    },
-    setrole(row, lx, url) {
-      if (row) {
-        this.formInline = { id: row.id, name: row.name, lx: lx, url: url };
-        this.dialogVisible = true;
-        return;
-      }
-      this.$refs['formInline'].validate((valid) => {
-        if (valid) {
-          request({ url: this.formInline.url, method: 'post', data: this.formInline }).then(response => {
-            if (response.data.code == '1') {
-              this.dialogVisible = false;
-              this.$message({ type: 'success', message: response.data.msg });
-              this.onloadtable1();
-            } else {
-              this.$message({ type: 'error', message: response.data.msg });
-            }
-          }).catch(error => {
-            Message.error("error：" + "请检查网络是否连接");
-          });
-        } else {
-          this.$message({ message: '表单验证未通过', type: 'error' });
-          return false;
-        }
-      });
-    },
-    deletrole(row) {
-      this.$confirm('此操作将删除 “ ' + row.name + ' ” ,  是否继续?', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        request({ url: "card/role/deletRole.do", method: 'post', data: { id: row.id } }).then(response => {
-          if (response.data.code == '1') {
-            this.dialogVisible = false;
-            this.$message({ type: 'success', message: response.data.msg });
-            this.onloadtable1();
-          } else {
-            this.$message({ type: 'error', message: response.data.msg });
-          }
-        }).catch(error => {
-          Message.error("error：" + "请检查网络是否连接");
-        });
 
-        Message.success('角色 “ ' + row.name + ' ” ，删除成功');
-        this.onloadtable1();
-        this.onloadtable2(); //是否刷新功能
-        this.setCheckedKeys(); //是否刷新菜单树
-        this.onloadtable3(); //是否刷新菜单树
-      }).catch(() => {
-        this.$message({ type: 'info', message: '已取消删除' });
-      });
+    /** 搜索事件触发 */
+    searchEvent(data) {   //拼接查询参数，从查询参数中清除高级查询中的参数
+      this.params = {
+        ...this.params,
+        keyword: data
+      }
+      this.params.page_no = 1
+      Object.keys(this.advancedForm).forEach(key => delete this.params[key])
+      this.GET_RepairList()
     },
-    onloadtable1() { //查询
-      request({ url: 'card/role/queryAllRoles.do', method: 'post', data: {} }).then(response => {
-        this.loading = false;
-        this.tableData = response;
-      }).catch(error => {
-        Message.error("error：" + "请检查网络是否连接");
-      });
+
+    /** 分页大小发生改变 */
+    handlePageSizeChange(size) {
+      this.params.page_size = size;
+      this.GET_RepairList();
     },
-    onloadtable2(row) { //查询
-      var txmxcxData = {
-        id: row ? row.id : '',
-      };
-      request({ url: 'card/resource/findResourceByRoleId.do', method: 'post', data: txmxcxData }).then(response => {
-        if (row) {
-          this.checkList = [];
-          var checkrespon = []; //角色已有的功能编号
-          response.forEach(item => {
-            checkrespon.push(item.id);
-          })
-          for (let ckey in checkrespon) {
-            for (let key in this.checkopt) {
-              if (checkrespon[ckey] === this.checkopt[key].id)
-                this.checkList.push(this.checkopt[key]);
-            }
-          }
-        } else {
-          this.checkopt = response;
-        }
-        this.isIndeterminate = true;
-      }).catch(error => {
-        Message.error("error：" + "请检查网络是否连接");
-      });
+
+    /** 分页页数发生改变 */
+    handlePageCurrentChange(page) {
+      this.params.page_no = page;
+      this.GET_RepairList();
     },
-    setCheckedKeys() {
-      this.$refs.tree.setCheckedKeys(this.cdMenu);
-    },
-    onloadtable3(row) { //查询
-      var txmxcxData = {
-        id: row ? row.id : '',
-      };
-      request({ url: 'card/resource/findMenuByRoleId.do', method: 'post', data: txmxcxData }).then(response => {
-        if (row) {
-          this.cdMenu = [];
-          this.listkeyid = [];
-          response.forEach(item => {
-            if (item.pid) { this.cdMenu.push(item.id); }
-            this.listkeyid.push(item.id);
+    //删除管理员
+    handleDeleteAdmin(index, row) {
+      this.$confirm("确定要删除这个会员吗？", "提示", { type: "warning" })
+        .then(() => {
+          API_Auth.deleteAdminUser(row.id).then(() => {
+            this.$message.success("删除成功！");
+            this.GET_AdminList();
           });
-          this.listkeyid = this.listkeyid + '';
-          this.setCheckedKeys();
-        } else {}
-      }).catch(error => {
-        Message.error("error：" + "请检查网络是否连接");
-      });
+        })
+        .catch(() => {});
     },
+    /**编辑管理员*/
+    handleEditAdmin(index,row){
+      //显示编辑窗体，查询管理员详细
+      this.adminForm.id=row.id
+      this.dialogVisible=true
+      API_Auth.getAdminUser(this.adminForm.id).then((response)=>{
+        this.adminForm=response
+      })
+    },
+    //添加管理员
+    /** 添加管理员 */
+    handleAddAdmin() {
+      this.adminForm = {
+        founder: 0
+      }
+      this.dialogVisible = true
+    },
+    //添加或修改管理员
+    submitAddRepairForm(){
+      // 根据选择的角色id设置角色名
+      const params=this.adminForm
+      this.rolesOptions.map(function(value){
+        if(value.role_id==params.role_id){
+          params.role_name=value.role_name
+          return
+        }
+      })
+      API_Auth.addAdminUser(params).then(()=>{
+        this.dialogVisible = false
+        this.$message.success("保存成功")
+        this.GET_AdminList()
+      }).catch(()=>{
+        this.$message.error("保存失败")
+      })
+
+
+    },
+    closeDialog(){
+
+    },
+
+    /** 性别格式化 */
+    formatterSex(row, column, cellValue) {
+      return row.sex === 1 ? "男" : "女";
+    },
+
+    handleDialogOpen() {
+      setTimeout(() => { this.$refs['adminForm'].clearValidate() })
+    },
+    GET_RoleList(){
+      API_Auth.getRoleAll().then((response)=>{
+        this.rolesOptions=response;
+      })
+    },
+    //    角色选择变化
+    roleChange(event){
+      alert(event)
+      console.log(this.adminForm)
+
+    }
+  },
+  mounted() {//初始化请求全部数据
+    this.GET_AdminList();
+    //    获取角色集合
+    this.GET_RoleList()
   }
 }
 
 </script>
-<style scoped>
-/**/
 
-.smain {
-  padding: 10px;
-  position: relative;
-}
+<style type="text/scss" lang="scss" scoped>
+  .show-pwd {
+    position: absolute;
+    top: 0;
+    right: 10px;
+    cursor: pointer;
+  }
 
-.el-form-item {
-  margin: 15px 0;
-}
+  .el-date-editor.el-input {
+    width: 180px;
+  }
 
-.el-input {
-  width: 300px;
-}
+  /deep/ .form-item-sex .el-form-item__content {
+    width: 180px;
+  }
 
-.qxsz:before,
-.qxsz:after {
-  display: table;
-  content: "";
-  clear: both
-}
+  /deep/ .form-item-region .el-form-item__content {
+    min-width: 180px;
+  }
+  /deep/.el-form .el-form-item__content {
+    width: 210px !important;
+    .el-date-editor {
+      width: 100%;
+    }
+  }
+  /deep/ .el-radio-group {
+    white-space: nowrap;
+  }
+  /deep/ .el-radio + .el-radio {
+    margin-left: 10px;
+  }
 
-.el-table {
-  border: 0;
-  cursor: pointer;
-}
-
-.box-card {
-  min-height: 250px;
-  width: 49%;
-  position: relative;
-  float: left;
-  margin-left: 10px;
-}
-
-div.body {
-  /*position: absolute;*/
-  /*right: 7px;*/
-  min-height: 300px;
-  float: right;
-  z-index: 1;
-  width: 49%;
-  margin-left: 10px;
-  margin-bottom: 30px;
-}
-
-div.botom body {
-  /*position: relative;*/
-  margin-left: 0;
-}
-
-div.botom {
-  margin-top: 10px;
-  margin-bottom: 30px;
-}
-
-.checkliststy {
-  border-bottom: 1px solid #ebeef5;
-  padding: 5px 5px 10px 5px;
-  width: 33%;
-  float: left;
-}
-
-.checkstyle .el-checkbox {
-  padding: 5px 0;
-  height: 38px;
-  line-height: 20px;
-}
-
-.el-tree {
-  margin: 10px;
-}
-
+  body {
+    font-family: Helvetica Neue, Helvetica, PingFang SC, Hiragino Sans GB,
+    Microsoft YaHei, SimSun, sans-serif;
+    overflow: auto;
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+  }
+  .tb-edit .el-input {
+    display: none;
+  }
+  .tb-edit .current-row .el-input {
+    display: block;
+  }
+  .tb-edit .current-row .el-input + span {
+    display: none;
+  }
+  .btn {
+    float: right;
+    margin-bottom: 10px;
+    margin-right: 45px;
+  }
+  /deep/ .app-address {
+    /* position: relative; */
+    min-width: 20%;
+    height: 26px;
+    font-size: 12px;
+    z-index: 1000;
+  }
+  .face-image{
+    width: 50px;
+    height: 50px;
+  }
 </style>

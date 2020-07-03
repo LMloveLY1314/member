@@ -2,16 +2,15 @@
   <div class="login-container">
     <el-form class="login-form" autoComplete="on" :model="loginForm" :rules="loginRules" ref="loginForm" label-position="left">
       <div class="title-container">
-        <h3 class="title">酉缘会员管理系统</h3>
+        <h3 class="title">四火会员管理系统</h3>
       </div>
-      <el-form-item prop="username">
+      <el-form-item prop="userName">
         <i class="iconfont icon-user"></i>
-        </span>
-        <el-input name="username" type="text" v-model="loginForm.username" autoComplete="on" placeholder="username" />
+        <el-input name="userName" type="text" v-model="loginForm.userName" autoComplete="on" placeholder="userName" />
       </el-form-item>
-      <el-form-item prop="password">
+      <el-form-item prop="passWord">
         <i class="iconfont icon-et-change-password"></i>
-        <el-input name="password" :type="pwdType" @keyup.enter.native="handleLogin" v-model="loginForm.password" autoComplete="on" placeholder="password"></el-input>
+        <el-input name="passWord" :type="pwdType" @keyup.enter.native="handleLogin" v-model="loginForm.passWord" autoComplete="on" placeholder="passWord"></el-input>
         <span class="show-pwd iconfont icon-eye-off" @click="showPwd"></span>
       </el-form-item>
       <el-form-item>
@@ -49,12 +48,12 @@ export default {
     }
     return {
       loginForm: {
-        username: 'admin',
-        password: '000000'
+        userName: 'admin',
+        passWord: '000000'
       },
       loginRules: {
-        username: [{ required: true, trigger: 'blur', validator: validateUsername }],
-        password: [{ required: true, trigger: 'blur', validator: validatePass }]
+        userName: [{ required: true, trigger: 'blur', validator: validateUsername }],
+        passWord: [{ required: true, trigger: 'blur', validator: validatePass }]
       },
       loading: false,
       pwdType: 'password'

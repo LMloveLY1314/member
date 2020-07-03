@@ -14,13 +14,6 @@ export const constantRouterMap = [
   {
     path: '',
     component: Layout,
-    //     redirect: 'dashboard',
-    //     children: [{
-    //       path: 'dashboard',
-    //       component: _import('dashboard/index'),
-    //       name: 'dashboard',
-    //       meta: { title: '首页', icon: 'icon-danweiguanli', noCache: true }
-    //     }]
   },
   //会员信息管理
   {
@@ -59,7 +52,7 @@ export const constantRouterMap = [
     meta: { noCache: false, title: '权限管理', icon: 'icon-caiwuguanli' },
     children: [
       { path: 'yhxxgl', component: _import('qxgl/yhxxgl'), name: 'yhxxgl', meta: { noCache: false, title: '用户信息管理', icon: 'example' } },
-      { path: 'qxsz', component: _import('qxgl/qxsz'), name: 'qxsz', meta: { noCache: false, title: '权限設置', icon: 'example' } },
+      { path: 'qxsz', component: _import('qxgl/qxsz'), name: 'qxsz', meta: { noCache: false, title: '管理员管理', icon: 'example' } },
       { path: 'zygl', component: _import('qxgl/zygl'), name: 'zygl', meta: { noCache: false, title: '资源管理', icon: 'example' } },
     ]
   },
@@ -98,18 +91,6 @@ export const constantRouterMap = [
       { path: 'sjzd', name: 'sjzd', component: _import('xtgl/sjzd'), meta: { noCache: false, title: '数据字典', icon: 'icon-xitongguanli' } },
     ]
   },
-  //统计分析
-  // {
-  //   path: '/统计分析',
-  //   component: Layout,
-  //   children: [{
-  //     path: 'index',
-  //     name: 'tjfx',
-  //     component: _import('tjfx/index'),
-  //     meta: { noCache: false, title: '统计分析', icon: 'icon-chengbentongjifenxi' }
-  //   }]
-  // },
-
   //渠道管理
   {
     path: '/qdgl',

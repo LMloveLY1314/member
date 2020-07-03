@@ -2,7 +2,7 @@
   <div>
     <div :class="{ 'titlesid': true,'hide':isCollapse}">
       <div class="logo">
-        <span class="logo_prefix">酉缘</span>
+        <span class="logo_prefix">四火</span>
         <span class="logo_suffix">会员管理系统</span>
       </div>
     </div>
@@ -41,12 +41,51 @@ export default {
         {
           path: '/flccpgl',
           name: 'flccpgl',
-
           meta: { noCache: false, title: '理财产品管理', icon: 'icon-caiwuguanli' },
           children: [
             { path: 'lccpcx', name: 'lccpcx', meta: { noCache: false, title: '理财产品查询', icon: 'example' } },
             { path: 'lccpgl', name: 'lccpgl', meta: { noCache: false, title: '理财产品管理', icon: 'example' } },
             { path: 'hyczsh',  name: 'hyczsh', meta: { noCache: false, title: '会员充值审核', icon: 'example' } }
+          ]
+        },
+        //权限管理
+        {
+          path: '/qxgl',
+          name: 'qxgl',
+          meta: { noCache: false, title: '权限管理', icon: 'icon-caiwuguanli' },
+          children: [
+            { path: 'yhxxgl', name: 'yhxxgl', meta: { noCache: false, title: '用户信息管理', icon: 'example' } },
+            { path: 'qxsz',  name: 'qxsz', meta: { noCache: false, title: '管理员管理', icon: 'example' } },
+            { path: 'zygl', name: 'zygl', meta: { noCache: false, title: '资源管理', icon: 'example' } },
+          ]
+        },
+        //客服人员管理
+        {
+          path: '/kfrygl',
+          name: 'kfrygl',
+          meta: { noCache: false, title: '客服人员管理', icon: 'icon-caiwuguanli' },
+          children: [
+            { path: 'kfryglc',  name: 'kfryglc', meta: { noCache: false, title: '客服人员管理', icon: 'icon-caiwuguanli' } },
+          ]
+        },
+        //消息公告
+        {
+          path: '/xxgg',
+          name: 'xxgg',
+          meta: { noCache: false, title: '消息公告', icon: 'icon-xiaoxigonggao' },
+          children: [
+            { path: 'xxfb',  name: 'xxfb', meta: { noCache: false, title: '消息发布', icon: 'example' } },
+            { path: 'tsjy',  name: 'tsjy', meta: { noCache: false, title: '投诉建议', icon: 'example' } }
+          ]
+        },
+        //系统管理
+        {
+          path: '/xtgl',
+          name: 'xtgl',
+          meta: { noCache: false, title: '系统管理', icon: 'icon-xitongguanli' },
+          children: [
+            // { path: 'index', name: 'index', component: _import('xtgl/index'), meta: { noCache: false, title: '系统管理', icon: 'icon-xitongguanli' } },
+            { path: 'sjzd', name: 'sjzd',  meta: { noCache: false, title: '数据字典', icon: 'icon-xitongguanli' } },
           ]
         },
       ]
