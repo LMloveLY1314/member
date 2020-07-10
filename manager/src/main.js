@@ -21,13 +21,19 @@ Vue.mixin(mixin)
 import echarts from "echarts"
 Vue.prototype.$echarts = echarts
 
-// import '@/permission' // permission control
+import '@/permission' // permission control
 
 Vue.use(ElementUI, {
   size: 'medium', // set element-ui default size
 })
 
 Vue.config.productionTip = false
+
+
+import axios from 'axios'
+
+axios.defaults.withCredentials=true //让ajax携带cookie
+Vue.$http=axios
 
 /* eslint-disable no-new */
 new Vue({

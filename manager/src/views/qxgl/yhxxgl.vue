@@ -15,7 +15,9 @@
       <!-- 右侧按钮 -->
       <el-form-item>
         <el-button type="warning" @click="onloadtable1()">查询</el-button>
-        <el-button type="warning" @click="yhxxloadbtn('',0)">新增</el-button>
+<!--        <el-button type="warning" @click="yhxxloadbtn('',0)">新增</el-button>-->
+        <el-button type="warning" @click="dialogVisible[0].show=true">新增</el-button>
+
       </el-form-item>
     </el-form>
     <!-- 表格 -->
@@ -41,7 +43,7 @@
     <el-pagination background @size-change="handleSizeChange" @current-change="handleCurrentChange" :current-page="listQuery.currentPage" :page-sizes="[10, 30, 50, 100]" :page-size="listQuery.pageSize" layout="total, sizes, prev, pager, next, jumper" :total="listQuery.totalCount">
     </el-pagination>
     <!-- 添加用户 -->
-    <el-dialog title="用户信息新增" :visible.sync="dialogVisible[0].show" :close-on-click-modal='false' width="40%" style="padding-bottom: 5%;">
+    <el-dialog title="新增用户" :visible.sync="dialogVisible[0].show" :close-on-click-modal='false' width="40%" style="padding-bottom: 5%;">
       <addyhxxform :options="options" :dialogVisible="dialogVisible[0].show" @dialog1Changed="childchanged($event)"></addyhxxform>
     </el-dialog>
     <!-- 用户信息修改 -->

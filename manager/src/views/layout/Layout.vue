@@ -15,7 +15,7 @@
 </template>
 <script>
 import { Navbar, Sidebar, AppMain, Header, TagsView } from '@/views/layout/components' //
-
+import { getSession, setSession, removeSession } from '@/utils/auth'
 export default {
   name: 'layout',
   components: {
@@ -24,6 +24,10 @@ export default {
     AppMain,
     Header,
     TagsView
+  },
+  mounted() {
+    //获取当前登录用户
+    // console.log(eval('(' +sessionStorage.getItem("user")+')'))
   },
   computed: {
     sidebar() {

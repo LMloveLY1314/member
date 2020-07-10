@@ -26,3 +26,25 @@ export function getUserInfo(token) {
     params: { token }
   })
 }
+
+/**
+ * 获取用户角色权限
+ * @param role_id
+ * @returns {*}
+ */
+export function getUserRolesPermissions(role_id) {
+  return request({
+    url: `admin/systems/roles/${role_id}/checked`,
+    method: 'get'
+  })
+}
+
+//
+// export function getUserRolesPermissions(data) {
+//   return request({
+//     url: `admin/systems/roles/list`,
+//     method: 'post',
+//     data
+//   })
+// }
+

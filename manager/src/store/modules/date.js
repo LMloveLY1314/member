@@ -30,7 +30,7 @@ const date = {
       // console.log(date);
     },
     REQUEST: (state, date) => { //发起请求
-      console.log(date.data);
+      // console.log(date.data);
       // console.log(this.$store);
       axios.post(process.env.BASE_API + date.url, date.data, {
           headers: {

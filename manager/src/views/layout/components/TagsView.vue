@@ -29,6 +29,7 @@ export default {
     }
   },
   watch: {
+    //监听路由对象，判断是添加标签还是移除标签
     $route() {
       this.addViewTags()
       this.moveToCurrentTag()

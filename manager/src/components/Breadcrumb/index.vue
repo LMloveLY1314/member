@@ -1,6 +1,13 @@
 <template>
   <el-breadcrumb class="app-breadcrumb" separator="/">
     <transition-group name="breadcrumb">
+<!--      <el-breadcrumb separator="/">-->
+<!--        <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>-->
+<!--        <el-breadcrumb-item><a href="/">活动管理</a></el-breadcrumb-item>-->
+<!--        <el-breadcrumb-item>活动列表</el-breadcrumb-item>-->
+<!--        <el-breadcrumb-item>活动详情</el-breadcrumb-item>-->
+<!--      </el-breadcrumb>-->
+<!--      设置面包屑-->
       <el-breadcrumb-item v-for="(item,index)  in levelList" :key="item.path" v-if='item.meta.title'>
         <span v-if='item.redirect==="noredirect"||index==levelList.length-1' class="no-redirect">{{item.meta.title}}</span>
         <router-link v-else :to="item.redirect||item.path">{{item.meta.title}}</router-link>
@@ -19,17 +26,22 @@ export default {
     }
   },
   watch: {
+    //监控路由
     $route() {
       this.getBreadcrumb()
     }
   },
   methods: {
     getBreadcrumb() {
+      //获取被点击路由的信息（每一级路由以数组展示）
       let matched = this.$route.matched.filter(item => item.name)
+      // console.log(matched)
       const first = matched[0]
+      //将首页作为第一级拼接到面包屑上（首页/xxx/xxx）
       if (first && first.name !== 'dashboard') {
         matched = [{ path: '/dashboard', meta: { title: '首页' } }].concat(matched)
       }
+      //为levelList赋值
       this.levelList = matched
     }
   }

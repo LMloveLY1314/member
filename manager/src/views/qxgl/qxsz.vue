@@ -1,6 +1,9 @@
 <template>
   <div style="margin-top: 10px">
-    <en-table-layout :tableData="tableData.records">
+    <en-table-layout
+      :tableData="tableData.records"
+      :loading="loading"
+    >
       <!--      工具栏-->
       <div slot="toolbar" class="inner-toolbar">
         <div class="toolbar-btns">
@@ -22,14 +25,15 @@
         <el-table-column prop="face" label="管理员头像">
           <template slot-scope="scope"><img :src="scope.row.face" class="face-image"></template>
         </el-table-column>
-        <el-table-column prop="uname" label="管理员名称"/>
-        <el-table-column prop="role_name" label="所属角色"/>
-        <el-table-column prop="real_name" label="管理员真实姓名"/>
+        <el-table-column prop="userName" label="管理员名称"/>
+        <el-table-column prop="roleName" label="所属角色"/>
+        <el-table-column prop="realName" label="管理员真实姓名"/>
         <el-table-column
           label="创建时间">
           <template slot-scope="scope">
             <span v-if="scope.row.date_line === null">NULL</span>
-            <span v-else>{{ scope.row.date_line | unixToDate }}</span>
+            <span v-else>{{ scope.row.createTime}}</span>
+<!--            <span v-else>{{ scope.row.date_line | unixToDate }}</span>-->
           </template>
         </el-table-column>
 
@@ -37,11 +41,12 @@
           label="上次登录时间">
           <template slot-scope="scope">
             <span v-if="scope.row.last_login === null">NULL</span>
-            <span v-else>{{ scope.row.last_login | unixToDate }}</span>
+            <span v-else>{{ scope.row.lastLogin }}</span>
+<!--            <span v-else>{{ scope.row.last_login | unixToDate }}</span>-->
           </template>
         </el-table-column>
         <el-table-column
-          prop="login_count"
+          prop="loginCount"
           label="登录次数">
         </el-table-column>
         <el-table-column
@@ -70,13 +75,14 @@
         slot="pagination"
         @size-change="handlePageSizeChange"
         @current-change="handlePageCurrentChange"
-        :current-page="tableData.current"
+        :current-page="parseInt(tableData.current)"
         :page-sizes="[10, 20, 50, 100]"
-        :page-size="tableData.size"
+        :page-size="parseInt(tableData.size)"
         layout="total, sizes, prev, pager, next, jumper"
-        :total="tableData.total">
+        :total="parseInt(tableData.total)">
       </el-pagination>
     </en-table-layout>
+
     <el-dialog
       :title="adminForm.id ? '编辑管理员' : '添加管理员'"
       :visible.sync="dialogVisible"
@@ -86,32 +92,31 @@
       :close-on-press-escape="false"
     >
       <el-form :model="adminForm" :rules="adminRules" ref="adminForm" label-width="120px">
-        <el-form-item label="管理员名称" prop="uname">
-          <span v-if="adminForm.id">{{ adminForm.uname }}</span>
-          <el-input v-else v-model="adminForm.uname" :maxlength="20" clearable placeholder="请输入管理员名称"></el-input>
+        <el-form-item label="管理员名称" prop="userName">
+          <span v-if="adminForm.id">{{ adminForm.userName }}</span>
+          <el-input v-else v-model="adminForm.userName" :maxlength="20" clearable placeholder="请输入管理员名称"></el-input>
         </el-form-item>
         <el-form-item label="管理员密码" prop="password">
           <el-input type="password" v-model="adminForm.password" :maxlength="20" clearable :placeholder="adminForm.id ? '不修改请留空' : '6-20位数字、英文字母'"></el-input>
         </el-form-item>
-        <el-form-item label="所属角色" prop="role_id">
+        <el-form-item label="所属角色" prop="roleId">
           <el-select
 
-            v-model="adminForm.role_id"
-            :disabled="adminForm.founder === 1"
-            :placeholder="adminForm.founder === 1 ? '超级管理员无须选择角色' : '请选择角色'"
+            v-model="adminForm.roleId"
             @change="roleChange"
-            clearable
-          >
+            clearable>
+<!--            :disabled="adminForm.founder === 1"-->
+<!--            :placeholder="adminForm.founder === 1 ? '超级管理员无须选择角色' : '请选择角色'"-->
             <el-option
               v-for="item in rolesOptions"
-              :key="item.role_id"
-              :label="item.role_name"
-              :value="item.role_id">
+              :key="item.roleId"
+              :label="item.roleName"
+              :value="item.roleId">
             </el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="管理员真实姓名" prop="real_name">
-          <el-input v-model="adminForm.real_name" :maxlength="20" clearable></el-input>
+        <el-form-item label="管理员真实姓名" prop="realName">
+          <el-input v-model="adminForm.realName" :maxlength="20" clearable></el-input>
         </el-form-item>
         <el-form-item label="备注信息" prop="remark">
           <el-input v-model="adminForm.remark" :maxlength="20" clearable></el-input>
@@ -119,7 +124,7 @@
         <el-form-item label="管理员头像" prop="face">
           <el-upload
             :action="uploadApi"
-            :on-success="(res) => { adminForm.face = res.url }"
+            :on-success="(res) => { adminForm.face = res.data.url }"
             :on-remove="() => { adminForm.face = '' }"
             :file-list="adminForm.face"
             list-type="picture">
@@ -127,10 +132,7 @@
             <div slot="tip" class="el-upload__tip">建议上传jpg/png文件，且不超过1MB</div>
           </el-upload>
         </el-form-item>
-        <el-form-item label="超级管理员">
-          <el-radio v-model="adminForm.founder" :label="1">是</el-radio>
-          <el-radio v-model="adminForm.founder" :label="0">否</el-radio>
-        </el-form-item>
+
       </el-form>
       <span slot="footer" class="dialog-footer">
         <el-button @click="dialogVisible = false">取 消</el-button>
@@ -142,6 +144,7 @@
 <script>
 
   import Search from '@/components/TableSearch/index'
+  import * as API_Auth from '@/api/auth.js'
 export default {
   name: 'txmccx',
   components:{
@@ -149,7 +152,7 @@ export default {
   },
   data(){
     return{
-      uploadApi:'http://localhost:7003/uploaders',
+      uploadApi:'http://localhost:8082/uploaders',
       /** 列表loading状态 */
       loading: false,
       /** 编辑管理员窗体*/
@@ -160,7 +163,8 @@ export default {
         page_size: 10,
       },
       /** 列表数据*/
-      tableData: '',
+      // 角色列表
+      tableData:[],
 
       /**添加管理员表单*/
       adminForm:{
@@ -168,13 +172,17 @@ export default {
       },
       /**添加管理员的验证规则*/
       adminRules: {
-
+        // userName:[ { required: true, message: '请输入管理员名称', trigger: 'blur' },
+        //   { min: 3, max: 10, message: '长度在 3 到 10个字符', trigger: 'blur' }],
+        // password:[{ required: true, message: '请输入管理员密码', trigger: 'blur' },
+        //   { min: 6, max: 16, message: '长度在 3 到 16 个字符', trigger: 'blur' }],
+        // roleId:[{ required: true, message: '请选择管理员角色', trigger: 'blur' }],
       },
       rolesOptions: [],
     }
   },
   methods:{
-    //发送请求，获取维修师傅列表数据
+    //发送请求，获取管理员列表数据
     GET_AdminList() {
       this.loading = true
       API_Auth.getAdminList(this.params).then(response => {
@@ -208,7 +216,7 @@ export default {
     },
     //删除管理员
     handleDeleteAdmin(index, row) {
-      this.$confirm("确定要删除这个会员吗？", "提示", { type: "warning" })
+      this.$confirm("确定要删除这个管理员吗？", "提示", { type: "warning" })
         .then(() => {
           API_Auth.deleteAdminUser(row.id).then(() => {
             this.$message.success("删除成功！");
@@ -268,12 +276,12 @@ export default {
     },
     GET_RoleList(){
       API_Auth.getRoleAll().then((response)=>{
-        this.rolesOptions=response;
+        this.rolesOptions=response.data;
+        console.log( this.rolesOptions)
       })
     },
     //    角色选择变化
     roleChange(event){
-      alert(event)
       console.log(this.adminForm)
 
     }

@@ -28,7 +28,6 @@
 </template>
 <script>
 import { isvalidUsername } from '@/utils/validate'
-import request from '@/utils/request'
 export default {
   name: 'login',
   data() {
@@ -73,6 +72,7 @@ export default {
           this.loading = true;
           this.$store.dispatch('LoginByUsername', this.loginForm).then(() => {
             this.loading = false;
+            //登录成功后跳转首页
             this.$router.push({ path: '/' });
           }).catch(() => {
             this.loading = false
