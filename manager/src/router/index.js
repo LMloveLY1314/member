@@ -8,17 +8,17 @@ Vue.use(Router)
 
 //asyncRouterMap为异步路由，即某个用户具体的路由权限
 export const asyncRouterMap = [
-    //会员信息管理
+    //会员管理
     {
-      path: '/hyxxgl',
-      name: 'hyxxgl',
+      path: '/member',
+      name: 'member',
       component: Layout,
-      redirect: '/hyxxgl/hyzlgl',
-      meta: { noCache: false, title: '会员信息管理', icon: 'icon-huiyuanguanli' },
+      redirect: '/member/member-manager',
+      meta: { noCache: false, title: '会员管理', icon: 'icon-huiyuanguanli' },
       children: [
-        { path: 'hyzlgl', component: _import('hyxxgl/hyzlgl'), name: "hyzlgl", meta: { title: '会员资料管理', icon: 'icon-danweiguanli', noCache: false } },
-        { path: 'czmxcx', component: _import('hyxxgl/czmxcx'), name: "czmxcx", meta: { title: '充值明细查询', icon: 'icon-danweiguanli', noCache: false } },
-        { path: 'xfmxcx', component: _import('hyxxgl/xfmxcx'), name: "xfmxcx", meta: { title: '消费明细查询', icon: 'icon-danweiguanli', noCache: false } }, { path: 'txmxcx', component: _import('hyxxgl/txmxcx'), name: "txmxcx", meta: { title: '提现明细查询', icon: 'icon-danweiguanli', noCache: true } }, { path: 'symxcx', component: _import('hyxxgl/symxcx'), name: "symxcx", meta: { title: '收益明细查询', icon: 'icon-danweiguanli', noCache: true } },
+        { path: 'member-manager', component: _import('member/memberManager'), name: "memberManager", meta: { title: '会员列表', icon: 'icon-danweiguanli', noCache: false } },
+        { path: 'member-recycle', component: _import('member/memberRecycle'), name: "memberRecycle", meta: { title: '会员回收站', icon: 'icon-danweiguanli', noCache: false } },
+        { path: 'member-level', component: _import('member/memberLevel'), name: "memberLevel", meta: { title: '会员等级', icon: 'icon-danweiguanli', noCache: false } }, { path: 'txmxcx', component: _import('hyxxgl/txmxcx'), name: "txmxcx", meta: { title: '提现明细查询', icon: 'icon-danweiguanli', noCache: true } }, { path: 'symxcx', component: _import('hyxxgl/symxcx'), name: "symxcx", meta: { title: '收益明细查询', icon: 'icon-danweiguanli', noCache: true } },
         { path: 'jfmxcx', component: _import('hyxxgl/jfmxcx'), name: 'jfmxcx', meta: { noCache: false, title: '积分明细查询', icon: 'icon-danweiguanli' } },
         { path: 'yhjmxcx', component: _import('hyxxgl/yhjmxcx'), name: 'yhjmxcx', meta: { noCache: false, title: '红包/优惠卷明细查询', icon: 'icon-danweiguanli' } },
       ]

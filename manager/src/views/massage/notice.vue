@@ -33,8 +33,9 @@
                 <el-table-column
                         label="发布时间">
                     <template slot-scope="scope">
-                        <span v-if="scope.row.create_time === null">NULL</span>
-                        <span v-else>{{ scope.row.create_time | unixToDate }}</span>
+                        <span v-if="scope.row.createTime === null">NULL</span>
+<!--                        <span v-else>{{ scope.row.create_time | unixToDate }}</span>-->
+                        <span v-else>{{ scope.row.createTime}}</span>
                     </template>
                 </el-table-column>
                 <el-table-column
@@ -58,11 +59,11 @@
                     slot="pagination"
                     @size-change="handlePageSizeChange"
                     @current-change="handlePageCurrentChange"
-                    :current-page="tableData.current"
+                    :current-page="parseInt(tableData.current)"
                     :page-sizes="[10, 20, 50, 100]"
-                    :page-size="tableData.size"
+                    :page-size="parseInt(tableData.size)"
                     layout="total, sizes, prev, pager, next, jumper"
-                    :total="tableData.total">
+                    :total="parseInt(tableData.total)">
             </el-pagination>
         </en-table-layout>
 <!--        添加公告窗体-->
@@ -119,8 +120,8 @@
                 dialogFormVisible:false,
                 /** 列表参数 */
                 params: {
-                    page_no: 1,
-                    page_size: 10,
+                    pageNo: 1,
+                    pageSize: 10,
                 },
                 /** 列表数据*/
                 tableData: '',
@@ -139,9 +140,9 @@
             }
         },
         methods:{
-            change() {
-                this.$forceUpdate()
-            },
+            // change() {
+            //     this.$forceUpdate()
+            // },
             //发送请求，获取维修师傅列表数据
             GET_NoticeList() {
                 this.loading = true

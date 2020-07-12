@@ -64,10 +64,10 @@
 
       <el-form :model="permissionForm" :rules="permissionRules" ref="permissionForm" label-width="200px" class="demo-ruleForm">
         <el-form-item label="角色名称" prop="role_name">
-          <el-input v-model="permissionForm.role_name"></el-input>
+          <el-input v-model="permissionForm.roleName"></el-input>
         </el-form-item>
         <el-form-item label="角色描述" prop="role_describe">
-          <el-input v-model="permissionForm.role_describe"></el-input>
+          <el-input v-model="permissionForm.roleDescribe"></el-input>
         </el-form-item>
         <el-form-item label="角色权限" prop="permission">
           <el-checkbox :indeterminate="allIndeterminate" v-model="allCheck" @change="handleCheckAll">全部选择</el-checkbox>
@@ -142,8 +142,10 @@ export default{
       tableData:{},
       /** 权限 表单 */
       permissionForm: {
+        roleId:'',
         roleName: '',
         roleDescribe:'',
+        menus:[],
       },
       /** 权限 表单规则 */
       permissionRules: {
@@ -177,7 +179,7 @@ export default{
     /** 添加角色 */
     handleAddRole() {
       this.dialogVisible=true
-      this.role_id = 0
+      this.roleId = 0
       API_Menus.getMenusChildren().then(res => {
         this.$set(this, 'permissions', res)
         this.countAllPermissions()
@@ -196,7 +198,7 @@ export default{
           this.permissionForm.roleDescribe = response.roleDescribe
           //获取该角色具有权限id，设置初始选中状态
           const checkedIds = this.expandRouters(response.menus)
-          console.log("角色选择的id"+checkedIds)
+          // console.log("角色选择的id"+checkedIds)
           this.$set(this, 'permissions', this.filterRoleRouter(res, checkedIds))
           this.countAllPermissions()
         })
@@ -236,11 +238,14 @@ export default{
         if (valid) {
           const params = {
             ...this.permissionForm,
-            menus: this.permissions
+            menus: this.permissions,
+            // id: this.roleId
           }
-          this.role_id === 0
+          // this.permissionForm.menus= this.permissions
+          // this.permissionForm.roleId=this.roleId
+          this.roleId === 0
             ? API_Auth.addRole(params).then(() => saveSuccess())
-            : API_Auth.editRole(this.role_id, params).then(() => saveSuccess())
+            : API_Auth.editRole(this.roleId,params).then(() => saveSuccess())
           const saveSuccess = () => {
             this.$message.success('保存成功！')
             this.GET_RoleList()

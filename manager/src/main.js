@@ -32,8 +32,8 @@ Vue.config.productionTip = false
 
 import axios from 'axios'
 
-axios.defaults.withCredentials=true //让ajax携带cookie
-Vue.$http=axios
+axios.defaults.withCredentials=true //让axios携带cookie
+// Vue.$http=axios
 
 /* eslint-disable no-new */
 new Vue({

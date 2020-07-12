@@ -61,12 +61,11 @@ export  function  deleteRole(id) {
  *添加角色
  */
 
-export function  addRole(params) {
+export function  addRole(data) {
     return request({
       url:'admin/systems/roles/add',
       method:'post',
-      headers: { 'Content-Type': 'application/json' },
-      data: params
+      data
     })
 }
 /**
@@ -81,15 +80,14 @@ export  function  getRole(id) {
 
 /**
 * 修改角色
-* @param id
-* @param params
+* @param data
 */
-export function editRole(id, params) {
+export function editRole(id,data) {
   return request({
     url: `admin/systems/roles/edit/${id}`,
     method: 'post',
-    headers: { 'Content-Type': 'application/json' },
-    data: params
+    // headers: { 'Content-Type': 'application/json' },
+    data
   })
 }
 

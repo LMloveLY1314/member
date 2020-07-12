@@ -246,6 +246,7 @@ export default {
     submitAddRepairForm(){
       // 根据选择的角色id设置角色名
       const params=this.adminForm
+      console.log( this.rolesOptions)
       this.rolesOptions.map(function(value){
         if(value.role_id==params.role_id){
           params.role_name=value.role_name
@@ -276,8 +277,7 @@ export default {
     },
     GET_RoleList(){
       API_Auth.getRoleAll().then((response)=>{
-        this.rolesOptions=response.data;
-        console.log( this.rolesOptions)
+        this.rolesOptions=response;
       })
     },
     //    角色选择变化

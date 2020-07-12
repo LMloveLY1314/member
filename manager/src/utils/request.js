@@ -3,17 +3,30 @@ import qs from 'qs'
 import { Message, MessageBox } from 'element-ui'
 import { getSession } from '@/utils/auth'
 import store from '@/store'
+
+// axios.defaults.withCredentials=true //让axios携带cookie
+
 // 创建axios实例
 const service = axios.create({
   baseURL: process.env.BASE_API,
   timeout: 15000, // 请求超时时间
+  // withCredentials:true,
+
 })
 // request（请求）拦截器
 service.interceptors.request.use(config => { // 在发送请求之前做些什么
-  if (store.getters.token) {
-    config.headers['token'] = getSession(); // 让每个请求携带自定义token 请根据实际情况自行修改
+  // config.headers['Content-Type'] = 'application/json'
+  // 如果是put/post请求，用qs.stringify序列化参数
+  const is_put_post = config.method === 'put' || config.method === 'post'
+  const is_json = config.headers['Content-Type'] === 'application/json'
+  if (is_put_post && is_json) {
+    config.data = JSON.stringify(config.data)
   }
-  console.log(config.data)
+  if (is_put_post && !is_json) {
+    config.headers['Content-Type'] = 'application/json'
+    config.data = JSON.stringify(config.data)
+    // config.data = qs.stringify(config.data, { arrayFormat: 'repeat' })
+  }
   return config
 }, error => { // 对请求错误做些什么
   Promise.reject(error)
@@ -21,7 +34,6 @@ service.interceptors.request.use(config => { // 在发送请求之前做些什�
 // respone（响应）拦截器
 service.interceptors.response.use( // 对响应数据做点什么
   response => {
-    // console.log(response.data);
     if (typeof response.data.data == "string" && response.data.code != "A000") {
       response.data = JSON.parse(response.data.data); //json格式化
     }

@@ -1,10 +1,6 @@
 import request from '@/utils/request'
 
 export function LoginByUsername(data) {
-  // const data = {
-  //   username,
-  //   password
-  // }
   return request({
     url: 'sys/login',
     method: 'post',
