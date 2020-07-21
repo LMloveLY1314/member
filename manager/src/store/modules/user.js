@@ -40,6 +40,7 @@ const user = {
       return new Promise((resolve, reject) => {
         //执行登录方法
         LoginByUsername(userInfo).then(response => {
+          if(response.code===-1){}
           //设置用户信息到本地(转换成json字符串后才能在sessionStorage中正常存取)
           sessionStorage.setItem("user",JSON.stringify(response.data.user))
           commit('SET_USER', response.data.user);

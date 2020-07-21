@@ -70,6 +70,7 @@ export default {
       this.$refs.loginForm.validate(valid => { //表单验证成功则返回true
         if (valid) {
           this.loading = true;
+          //执行登录方法
           this.$store.dispatch('LoginByUsername', this.loginForm).then(() => {
             this.loading = false;
             //登录成功后跳转首页

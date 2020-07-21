@@ -11,45 +11,17 @@
       <el-col style="  cursor: pointer" :xs="2" :sm="2" :md="1">
         <span style="color: #545C64;">1</span>
       </el-col>
-      <el-col :xs="8" :sm="8" :md="2">
-        <div class="header-right">
-          <el-dropdown @command="handleCommand">
-            <span>
-                <el-badge :value="3" class="sub item">
-                  <i class="el-icon-date"></i></el-badge>
-              </span>
-            <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item>
-                <span class="pop-title">You have new tasks! </span>
-              </el-dropdown-item>
-              <el-dropdown-item v-for="task in tasks" :key="task.id" divided>
-                <div class="task-div">
-                  <span class="task-span task-tag">
-                      <el-tag type="danger" v-if="task.rank==1">紧急</el-tag>
-                      <el-tag type="warning" v-if="task.rank==2">重要</el-tag>
-                      <el-tag type="success" v-if="task.rank==3">正常</el-tag>
-                    </span>
-                  <span class="task-span task-content">
-                        {{task.content}}<br/><span class="task-time">截止：{{task.overTime}}</span>
-                  </span>
-                  <span class="task-span task-btn">
-                      <el-button type="primary" size="mini">完成</el-button>
-                    </span>
-                </div>
-              </el-dropdown-item>
-            </el-dropdown-menu>
-          </el-dropdown>
-        </div>
-      </el-col>
-      <el-col :xs="8" :sm="8" :md="1">
+      <div style="float: right;margin-right: 5px">
         <div class="user-header">
+          <span style="margin-right: 5px;font-size: 16px;color: blue">欢迎您，{{userInfo.userName}}</span>
           <el-dropdown trigger="click">
             <div class="avatar-wrapper">
-              <img class="user-avatar" src="https://imgsa.baidu.com/forum/w%3D96/sign=8147fed0d1c8a786be2a460867091025/e6013af33a87e9509172ad4610385343fbf2b4b0.jpg">
+              <img class="user-avatar" :src="userInfo.face">
               <!-- :src="avatar+'?imageView2/1/w/80/h/80'">
  -->
               <i class="el-icon-caret-bottom"></i>
             </div>
+<!--            头部菜单下拉框-->
             <el-dropdown-menu slot="dropdown">
               <el-dropdown-item>
                 <div class="setting-div">
@@ -62,7 +34,7 @@
                 </div>
               </el-dropdown-item>
               <el-dropdown-item divided>
-                <div class="setting-div">
+                <div class="setting-div" @click="openEditDialog()">
                   <span class="setting-icon"><i class="icon iconfont icon-shezhi"></i></span>
                   <span class="setting-string"> 设置</span>
                 </div>
@@ -76,8 +48,43 @@
             </el-dropdown-menu>
           </el-dropdown>
         </div>
-      </el-col>
+      </div>
     </el-row>
+    <!--          修改个人信息窗体-->
+    <el-dialog
+      title="个人信息"
+      :visible.sync="dialogVisible"
+      width="500px"
+      @open="handleClose"
+    >
+      <el-form :model="userEditForm"  ref="userEditForm" label-width="120px">
+        <el-form-item label="管理员名称" prop="userName">
+          <span v-if="userEditForm.id">{{ userEditForm.userName }}</span>
+          <el-input v-else v-model="userEditForm.userName" :maxlength="20" :disabled="false"></el-input>
+        </el-form-item>
+        <el-form-item label="管理员密码" prop="password">
+          <el-input type="password" v-model="userEditForm.password" :maxlength="20" clearable :placeholder="userEditForm.id ? '不修改请留空' : '6-20位数字、英文字母'"></el-input>
+        </el-form-item>
+        <el-form-item label="管理员真实姓名" prop="realName">
+          <el-input v-model="userEditForm.realName" :maxlength="20" clearable></el-input>
+        </el-form-item>
+        <el-form-item label="管理员头像" prop="face">
+          <el-upload
+            :action="uploadApi"
+            :on-success="(res) => { userEditForm.face = res.data.url }"
+            :on-remove="() => { userEditForm.face = '' }"
+            :file-list="userEditForm.face"
+            list-type="picture">
+            <el-button size="small" type="primary">点击上传</el-button>
+            <div slot="tip" class="el-upload__tip">建议上传jpg/png文件，且不超过1MB</div>
+          </el-upload>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+              <el-button @click="dialogVisible = false">取 消</el-button>
+              <el-button type="primary" @click="dialogVisible = false">确 定</el-button>
+            </span>
+    </el-dialog>
   </div>
 </template>
 <script>
@@ -85,15 +92,35 @@ import { mapGetters } from 'vuex'
 export default {
   data() {
     return {
+      uploadApi:'http://localhost:8082/uploaders',
       name: 'linxin',
-      tasks: [
-        { id: 1, rank: 1, content: '完成JSPangAdmin头部头部组件的编写。', overTime: '2017/3/9' },
-        { id: 2, rank: 2, content: '完成GitHub仓库的初始化工作。', overTime: '2017/3/15' },
-        { id: 3, rank: 3, content: '在阿里云进行网站备案，完成后通知组长。', overTime: '2017/3/20' }
-      ]
+      dialogVisible:false,//个人信息窗体
+      userInfo:{},//登录用户信息
+      userEditForm:{
+        id:'',
+        userName:'',//用户名
+        face:'',//头像
+        password:'',//密码
+        realName:'',//真实姓名
+      },//编辑登录用户信息表单
     }
   },
+  mounted() {
+    //将登录时存入sessionStorage的用户信息取出，并转成json格式
+    this.userInfo=eval('(' + sessionStorage.getItem("user") + ')')
+  },
   methods: {
+    //打开编辑信息窗体
+    openEditDialog(){
+      this.userEditForm.face=this.userInfo.face
+      this.userEditForm.realName=this.userInfo.realName
+      this.userEditForm.userName=this.userInfo.userName
+      this.userEditForm.id=this.userInfo.id
+      this.dialogVisible=true
+    },
+    //关闭个人信息窗体，清空表单内容
+    handleClose(){
+    },
     handleCommand(command) {
       console.log(command);
       this.$message('click on item ' + command);
@@ -220,5 +247,7 @@ export default {
 .international {
   cursor: pointer;
 }
+
+
 
 </style>

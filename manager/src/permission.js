@@ -19,9 +19,10 @@ router.beforeEach((to, from, next) => { //全局前置守卫
       next({path: '/'});
     }
     // 如果是访问根路径或dashboard
-    if (to.path === '/' || to.path === "/dashboard") {
-      next({path: '/hyxxgl'});
-    }else {//如果是其它路径，直接访问
+    // if (to.path === '/') {
+    //   next({path: '/dashboard'});
+    // }
+    else {//如果是其它路径，直接访问
       next();
     }
     // if (store.getters.roles.length === 0) { //是否有用户信息

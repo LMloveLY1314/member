@@ -80,66 +80,66 @@ export const asyncRouterMap = [
       ]
     },//公告管理
     //客服人员管理
-    {
-      path: '/kfrygl',
-      name: 'kfrygl',
-      component: Layout,
-      redirect: '/kfrygl/kfryglc',
-      meta: { noCache: false, title: '客服人员管理', icon: 'icon-caiwuguanli' },
-      children: [
-        { path: 'kfryglc', component: _import('kfrygl/kfryglc'), name: 'kfryglc', meta: { noCache: false, title: '客服人员管理', icon: 'icon-caiwuguanli' } },
-      ]
-    },
-    //消息公告
-    {
-      path: '/xxgg',
-      name: 'xxgg',
-      component: Layout,
-      redirect: '/xxgg/xxfb',
-      meta: { noCache: false, title: '消息公告', icon: 'icon-xiaoxigonggao' },
-      children: [
-        { path: 'xxfb', component: _import('xxgg/xxfb'), name: 'xxfb', meta: { noCache: false, title: '消息发布', icon: 'example' } },
-        { path: 'tsjy', component: _import('xxgg/tsjy'), name: 'tsjy', meta: { noCache: false, title: '投诉建议', icon: 'example' } }
-      ]
-    },
+    // {
+    //   path: '/kfrygl',
+    //   name: 'kfrygl',
+    //   component: Layout,
+    //   redirect: '/kfrygl/kfryglc',
+    //   meta: { noCache: false, title: '客服人员管理', icon: 'icon-caiwuguanli' },
+    //   children: [
+    //     { path: 'kfryglc', component: _import('kfrygl/kfryglc'), name: 'kfryglc', meta: { noCache: false, title: '客服人员管理', icon: 'icon-caiwuguanli' } },
+    //   ]
+    // },
+    // //消息公告
+    // {
+    //   path: '/xxgg',
+    //   name: 'xxgg',
+    //   component: Layout,
+    //   redirect: '/xxgg/xxfb',
+    //   meta: { noCache: false, title: '消息公告', icon: 'icon-xiaoxigonggao' },
+    //   children: [
+    //     { path: 'xxfb', component: _import('xxgg/xxfb'), name: 'xxfb', meta: { noCache: false, title: '消息发布', icon: 'example' } },
+    //     { path: 'tsjy', component: _import('xxgg/tsjy'), name: 'tsjy', meta: { noCache: false, title: '投诉建议', icon: 'example' } }
+    //   ]
+    // },
     //系统管理
-    {
-      path: '/xtgl',
-      name: 'xtgl',
-      component: Layout,
-      redirect: '/xtgl/index',
-      meta: { noCache: false, title: '系统管理', icon: 'icon-xitongguanli' },
-      children: [
-        // { path: 'index', name: 'index', component: _import('xtgl/index'), meta: { noCache: false, title: '系统管理', icon: 'icon-xitongguanli' } },
-        { path: 'sjzd', name: 'sjzd', component: _import('xtgl/sjzd'), meta: { noCache: false, title: '数据字典', icon: 'icon-xitongguanli' } },
-      ]
-    },
+    // {
+    //   path: '/xtgl',
+    //   name: 'xtgl',
+    //   component: Layout,
+    //   redirect: '/xtgl/index',
+    //   meta: { noCache: false, title: '系统管理', icon: 'icon-xitongguanli' },
+    //   children: [
+    //     // { path: 'index', name: 'index', component: _import('xtgl/index'), meta: { noCache: false, title: '系统管理', icon: 'icon-xitongguanli' } },
+    //     { path: 'sjzd', name: 'sjzd', component: _import('xtgl/sjzd'), meta: { noCache: false, title: '数据字典', icon: 'icon-xitongguanli' } },
+    //   ]
+    // },
     //渠道管理
-    {
-      path: '/qdgl',
-      name: 'qdgl',
-      component: Layout,
-      meta: { noCache: false, title: '渠道管理', icon: 'icon-xitongguanli' },
-      children: [{
-        path: 'index',
-        name: 'qdgl',
-        component: _import('qdgl/index'),
-        meta: { noCache: false, title: '渠道管理', icon: 'icon-qudaoguanli' }
-      }]
-    },
+    // {
+    //   path: '/qdgl',
+    //   name: 'qdgl',
+    //   component: Layout,
+    //   meta: { noCache: false, title: '渠道管理', icon: 'icon-xitongguanli' },
+    //   children: [{
+    //     path: 'index',
+    //     name: 'qdgl',
+    //     component: _import('qdgl/index'),
+    //     meta: { noCache: false, title: '渠道管理', icon: 'icon-qudaoguanli' }
+    //   }]
+    // },
     //  会员提现审核
-    {
-      path: '/hytxsh',
-      component: Layout,
-      name: 'hytxsh',
-      meta: { noCache: false, title: '会员提现审核', icon: 'icon-xitongguanli' },
-      children: [{
-        path: 'hytxsh',
-        name: 'hytxsh',
-        component: _import('hytxsh/hytxshc'),
-        meta: { noCache: false, title: '会员提现审核', icon: 'icon-qudaoguanli' }
-      }]
-    },
+    // {
+    //   path: '/hytxsh',
+    //   component: Layout,
+    //   name: 'hytxsh',
+    //   meta: { noCache: false, title: '会员提现审核', icon: 'icon-xitongguanli' },
+    //   children: [{
+    //     path: 'hytxsh',
+    //     name: 'hytxsh',
+    //     component: _import('hytxsh/hytxshc'),
+    //     meta: { noCache: false, title: '会员提现审核', icon: 'icon-qudaoguanli' }
+    //   }]
+    // },
 
     //
     // //登陆界面
@@ -149,9 +149,17 @@ export const asyncRouterMap = [
 import Layout from '@/views/layout/Layout'
 //constantRouterMap包含系统用户所有的路由
 export const constantRouterMap = [
+  //首页
   {
     path: '',
     component: Layout,
+    redirect:'/dashboard',
+    children:[{
+      path:'dashboard',
+      name:'dashboard',
+      component: _import('dashboard/index'),
+      meta: { noCache: false, title: '首页', icon: 'icon-qudaoguanli' }
+    }]
   },
   //登陆界面
   { path: '/login', component: _import('login/index'), hidden: true, },

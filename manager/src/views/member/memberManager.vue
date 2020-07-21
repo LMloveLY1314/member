@@ -357,7 +357,6 @@
           this.addConsumerForm.town=object.regions.town
         }
       },
-      //格式化时间
       /** 性别格式化 */
       formatterSex(row, column, cellValue) {
         return row.sex === 1 ? "男" : "女";
