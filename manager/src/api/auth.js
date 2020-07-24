@@ -145,3 +145,14 @@ export function addAdminUser(params) {
   })
 }
 
+
+/**
+ * 管理员修改个人信息
+ */
+export function updateInfo(params) {
+  return request({
+    url: `admin/system/admin-manage/updateInfo`,
+    method: 'post',
+    params
+  })
+}

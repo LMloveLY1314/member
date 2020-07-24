@@ -31,7 +31,7 @@
         <el-table-column
           label="创建时间">
           <template slot-scope="scope">
-            <span v-if="scope.row.date_line === null">NULL</span>
+            <span v-if="scope.row.createTime === null">NULL</span>
             <span v-else>{{ scope.row.createTime}}</span>
 <!--            <span v-else>{{ scope.row.date_line | unixToDate }}</span>-->
           </template>
@@ -48,11 +48,6 @@
         <el-table-column
           prop="loginCount"
           label="登录次数">
-        </el-table-column>
-        <el-table-column
-          prop="sex"
-          label="性别"
-          :formatter="formatterSex" width="80px">
         </el-table-column>
         <el-table-column label="操作" width="150">
           <template slot-scope="scope">

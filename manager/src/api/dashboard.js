@@ -32,12 +32,51 @@ export function  getSexProportion() {
 }
 
 /**
- * 获取会员性别占比
+ * 获取会员年龄段占比
  * */
 
-export function  getLevelDetail(levelId) {
+export function  getAgeProportion() {
   return request({
-    url:`/member/level/detail/${levelId}`,
+    url:'/admin/index/ageProportion',
+    method:'get',
+    loading:false,
+  })
+
+}
+
+/**
+ * 获取会员地区占比
+ * */
+
+export function  getRegionProportion() {
+  return request({
+    url:'/admin/index/regionProportion',
+    method:'get',
+    loading:false,
+  })
+
+}
+/**
+ * 获取会员等级占比
+ * */
+
+export function  getLevelProportion() {
+  return request({
+    url:'/admin/index/levelProportion',
+    method:'get',
+    loading:false,
+  })
+
+}
+
+
+/**
+ * 获取本年度每月会员增长趋势
+ * */
+
+export function  memberGrowthTrend() {
+  return request({
+    url:'/admin/index/memberGrowthTrend',
     method:'get',
     loading:false,
   })

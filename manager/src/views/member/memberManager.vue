@@ -8,7 +8,7 @@
             size="mini"
             type="warning"
             icon="el-icon-circle-plus-outline"
-            @click="dialogFormVisible = true"
+            @click="handleAddMember"
           >添加</el-button>
           <el-button
             size="mini"
@@ -104,7 +104,7 @@
               size="mini"
               type="primary"
               @click="handleEditRepair(scope.$index, scope.row)"
-            >操作</el-button>
+            >编辑</el-button>
             <el-button
               size="mini"
               type="danger"
@@ -126,62 +126,99 @@
         :total="parseInt(tableData.total)">
       </el-pagination>
     </en-table-layout>
-    <!--添加会员 dialog-->
-    <el-dialog title="添加会员" :visible.sync="dialogFormVisible">
+    <!--添加会员 dialog
+    element-ui的弹出层组件
+    属性： visible.sync，定义该窗体是否可见，false：不可见，true：可见
+    初始状态（false），点击添加或修改按钮（修改值为true）就显示窗体
+    -->
+    <el-dialog :title="addMemberForm.memberId?'编辑会员':'添加会员'"
+               :visible.sync="dialogFormVisible"
+               @open="handleDialogOpen"
+               :close-on-click-modal="false"
+               :close-on-press-escape="false"
+               style="height: 600px"
+    >
+<!--      element-ui的form（form表单）组件
+           :model绑定表单对象
+           双向数据绑定
+           表单的双向绑定，用v-model（:model）绑定元素，当元素的值发生改变，该对象的值也改变，同样的，对象的值改变，元素的值也改变
+-->
       <el-form
-        :model="addConsumerForm"
+        :model="addMemberForm"
         :rules="addRepairRules"
         ref="addRepairForm"
-        label-width="100px"
+        label-width="80px"
         inline
       >
-        <!--用户名-->
-        <el-form-item label="用户名" prop="merberName">
-          <el-input v-model="addConsumerForm.memberName" :maxlength="20"></el-input>
-        </el-form-item>
-        <!--密码-->
-        <el-form-item label="密码" prop="password">
-          <el-input v-model="addConsumerForm.password" :type="pwdType" :maxlength="20"></el-input>
-          <span class="show-pwd" @click="pwdType = pwdType === 'password' ? 'text' : 'password'">
-                    <svg-icon :icon-class="pwdType === 'password' ? 'eye' : 'eye-open'" />
-                  </span>
-        </el-form-item>
-        <!--性别-->
-        <el-form-item label="性别" class="form-item-sex">
-          <el-radio v-model="addConsumerForm.sex" :label="1">男</el-radio>
-          <el-radio v-model="addConsumerForm.sex" :label="0">女</el-radio>
-        </el-form-item>
-        <!--                region为地区id-->
-        <el-form-item label="地区" prop="region" class="form-item-region">
-          <en-region-picker
-            v-model="addConsumerForm.address"
-            :api="api"
-            @changed="handleAddressSelectorChanged"
-          />
-        </el-form-item>
-        <!--生日-->
-        <el-form-item label="生日" prop="birthday">
-          <el-date-picker
-            v-model="addConsumerForm.birthday"
-            type="date"
-            :editable="false"
-            value-format="timestamp"
-            placeholder="选择生日"
-            :picker-options="{disabledDate(time) { return time.getTime() > Date.now() }}"
-          ></el-date-picker>
-        </el-form-item>
-        <!--邮箱-->
-        <el-form-item label="邮箱" prop="email">
-          <el-input v-model="addConsumerForm.email"></el-input>
-        </el-form-item>
-        <!--手机号码-->
-        <el-form-item label="手机号码" prop="mobile">
-          <el-input v-model.number="addConsumerForm.mobile" :maxlength="11"></el-input>
-        </el-form-item>
-        <!--固定电话-->
-        <el-form-item label="固定电话">
-          <el-input v-model.number="addConsumerForm.tel" :maxlength="20"></el-input>
-        </el-form-item>
+        <div id="left" style="width: 50%;float: left;height: 400px;margin-top: 10px">
+            <el-form-item label="会员名称" prop="merberName">
+              <el-input v-model="addMemberForm.memberName" :maxlength="20"></el-input>
+            </el-form-item>
+            <!--密码-->
+            <el-form-item label="密码" prop="password">
+              <el-input v-model="addMemberForm.password" :type="pwdType" :maxlength="20"></el-input>
+              <span class="show-pwd" @click="pwdType = pwdType === 'password' ? 'text' : 'password'">
+                      <svg-icon :icon-class="pwdType === 'password' ? 'eye' : 'eye-open'" />
+                    </span>
+            </el-form-item>
+            <!--性别-->
+            <el-form-item label="性别" class="form-item-sex">
+              <el-radio v-model="addMemberForm.sex" :label="1">男</el-radio>
+              <el-radio v-model="addMemberForm.sex" :label="0">女</el-radio>
+            </el-form-item>
+          <!--手机号码-->
+          <el-form-item label="手机号码" prop="mobile">
+            <el-input v-model.number="addMemberForm.mobile" :maxlength="11"></el-input>
+          </el-form-item>
+          <!--固定电话-->
+          <el-form-item label="固定电话" prop="tel">
+            <el-input v-model.number="addMemberForm.tel" :maxlength="20"></el-input>
+          </el-form-item>
+        </div>
+        <div id="right" style="width: 50%;float: right;height: 400px;margin-top: 10px">
+          <el-form-item label="地区" prop="address" class="form-item-region">
+            <el-input v-model="addMemberForm.address"></el-input>
+          </el-form-item>
+<!--          会员等级-->
+          <el-form-item label="会员等级">
+            <el-select
+              v-model="addMemberForm.level"
+              @change="levelChange"
+              clearable>
+              <el-option
+                v-for="item in levelOptions"
+                :key="item.level_id"
+                :label="item.level_name"
+                :value="item.level_name">
+              </el-option>
+            </el-select>
+          </el-form-item>
+          <!--生日-->
+          <el-form-item name="name" label="生日" prop="birthday">
+            <el-date-picker
+              v-model="addMemberForm.birthday"
+              type="date"
+              :editable="false"
+              value-format="timestamp"
+              placeholder="选择生日"
+              :picker-options="{disabledDate(time) { return time.getTime() > Date.now() }}"
+            ></el-date-picker>
+          </el-form-item>
+          <!--邮箱-->
+          <el-form-item label="邮箱" prop="email">
+            <el-input v-model="addMemberForm.email"></el-input>
+          </el-form-item>
+<!--          会员卡号-->
+          <el-form-item label="卡号" prop="kh">
+            <el-input v-model="addMemberForm.kh" :disabled="true"></el-input>
+          </el-form-item>
+
+<!--          身份证号-->
+          <el-form-item label="身份证号" prop="midentity">
+            <el-input v-model="addMemberForm.midentity" :disabled="true"></el-input>
+          </el-form-item>
+        </div>
+        <!---->
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormVisible = false">取 消</el-button>
@@ -195,6 +232,7 @@
 <script>
   import Search from "@/components/TableSearch";
   import * as API_Member from "@/api/member";
+  import * as API_Level from "@/api/level"
   // import {Foundation,RegExp } from '../../../ui-utils/index'
 
   export default {
@@ -220,24 +258,34 @@
         /** 列表数据*/
         tableData: '',
         advancedForm: {
-          uname:'',
+          memberName:'',
           mobile:'',
           sex:'',
           register_time_range:'',
         },
         /**添加会员表单*/
-        addConsumerForm:{
+        addMemberForm:{
         },
         /**添加会员的验证规则*/
         addRepairRules:{
 
         },
         pwdType: "password",
+        levelOptions:[],//会员等级名称列表
 
       }
     },
     methods:{
-      //发送请求，获取维修师傅列表数据
+      //打开添加会员窗体
+      handleAddMember(){
+        this.addMemberForm={}
+        this.dialogFormVisible=true
+      },
+      //
+      handleDialogOpen() {
+        setTimeout(() => { this.$refs['adminForm'].clearValidate() })
+      },
+      //发送请求，获取会员列表
       GET_MemberList() {
         this.loading = true
         const  disabled=1
@@ -249,7 +297,18 @@
           this.tableData = response
         }).catch(() => (this.loading = false))
       },
+      //获取会员等级列表
+      GET_LevelNameList(){
+        API_Level.levelNameList().then((res)=>{
+          this.levelOptions=res
+        })
+      },
 
+      //改变选择的等级
+      levelChange(event){
+        //编辑等级列表，为会员等级id赋值
+        console.log(event)
+      },
       /** 搜索事件触发 */
       searchEvent(data) {   //拼接查询参数，从查询参数中清除高级查询中的参数
         this.params = {
@@ -258,7 +317,7 @@
         }
         this.params.page_no = 1
         Object.keys(this.advancedForm).forEach(key => delete this.params[key])
-        this.GET_RepairList()
+        this.GET_MemberList()
       },
 
       /** 高级搜索事件触发 */
@@ -284,8 +343,8 @@
         delete this.params.keyword;
         //-1表示不限性别，则不添加
         if (sex === -1) delete this.params.sex;
-        this.params.page_no = 1;
-        this.GET_RepairList();
+        this.params.pageNo = 1;
+        this.GET_MemberList();
       },
       cleanFormEvent(){//监听Search组件的清空表单方法
         /**在el-form-item项上加了prop属性才重置成功
@@ -302,59 +361,43 @@
       },
       /** 分页大小发生改变 */
       handlePageSizeChange(size) {
-        this.params.page_size = size;
-        this.GET_RepairList();
+        this.params.pageSize = size;
+        this.GET_MemberList();
       },
 
       /** 分页页数发生改变 */
       handlePageCurrentChange(page) {
-        this.params.page_no = page;
-        this.GET_RepairList();
+        this.params.pageNo = page;
+        this.GET_MemberList();
       },
       handleDeleteMember(index, row) {
         this.$confirm("确定要禁用这个会员吗？", "提示", { type: "warning" })
           .then(() => {
-            API_repair.deleteMember(row.memberId).then(() => {
+            API_Member.disableMember(row.memberId).then(() => {
               this.$message.success("禁用成功！");
-              this.GET_RepairList();
+              this.GET_MemberList();
             });
           })
           .catch(() => {});
       },
-      /**编辑会员，跳转编辑会员*/
+      /**编辑会员，打开编辑会员窗体*/
       handleEditRepair(index,row){
-        this.$router.push({
-          name: "consumerEdit",
-          params: {
-            id: row.memberId,
-          }
-        });
+          this.dialogFormVisible=true
+          this.addMemberForm=row
       },
       submitAddConsumerForm(){
-        API_repair.addConsumer(this.addConsumerForm).then(()=>{
-          this.$message.success("添加成功");
-          this.dialogFormVisible = false
-          this.GET_RepairList();
-        })
-      },
-      /** 地址选择器发生改变
-       * 设置最底层地区id和地址
-       * */
-      handleAddressSelectorChanged(object) {
-        //设置地区相关数据
-        console.log(object)
-        this.addConsumerForm.address=object.string
-        this.addConsumerForm.region=object.regions.last_id   //最底层地区id
-        this.addConsumerForm.city_id=object.regions.city.id  //城市id
-        this.addConsumerForm.province_id=object.regions.province.id  //省份id
-        this.addConsumerForm.county_id=object.regions.region.id    //城镇id
-        //设置地区名称
-        this.addConsumerForm.province=object.regions.province  //城市id
-        this.addConsumerForm.city=object.regions.city  //省份id
-        this.addConsumerForm.county=object.regions.region    //城镇id
-        if(object.regions.town.id){
-          this.addConsumerForm.town_id=object.regions.town.id
-          this.addConsumerForm.town=object.regions.town
+        if (this.addMemberForm.memberId){
+          API_Member.editMember(this.addMemberForm.memberId,this.addMemberForm).then(()=>{
+            this.$message.success("编辑成功");
+            this.dialogFormVisible = false
+            this.GET_MemberList();
+          })
+        }else {
+          API_Member.addMember(this.addMemberForm).then(()=>{
+            this.$message.success("添加成功");
+            this.dialogFormVisible = false
+            this.GET_MemberList();
+          })
         }
       },
       /** 性别格式化 */
@@ -386,6 +429,7 @@
     },
     mounted() {//初始化请求全部数据
       this.GET_MemberList();
+      this.GET_LevelNameList();
     }
   }
 </script>

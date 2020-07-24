@@ -80,3 +80,13 @@ export function editLevel(levelId,data) {
     data
   })
 }
+
+/**
+ * 会员等级名称列表
+ */
+export function levelNameList() {
+  return request({
+    url: '/member/level/levelNameList',
+    method: 'get',
+  })
+}

@@ -170,11 +170,9 @@
           submitAddLevelForm(){
             if(this.advancedForm.levelId){
               API_Level.editLevel(this.advancedForm.levelId,this.advancedForm).then(()=>{
-                this.dialogVisible = false
-                this.$message.success("保存成功")
+                this.$message.success("修改成功")
+                this.dialogFormVisible=false
                 this.GET_LevelList()
-              }).catch(()=>{
-                this.$message.error("保存失败")
               })
             }else {
               API_Level.addLevel(this.advancedForm).then(()=>{

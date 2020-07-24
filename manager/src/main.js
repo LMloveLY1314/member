@@ -19,6 +19,7 @@ Vue.mixin(mixin)
 
 // 全局注册echarts(baidu画图工具)
 import echarts from "echarts"
+//
 Vue.prototype.$echarts = echarts
 
 import '@/permission' // permission control
