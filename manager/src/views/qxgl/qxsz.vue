@@ -163,7 +163,6 @@ export default {
 
       /**添加管理员表单*/
       adminForm:{
-        role_name:'',
       },
       /**添加管理员的验证规则*/
       adminRules: {
@@ -241,10 +240,11 @@ export default {
     submitAddRepairForm(){
       // 根据选择的角色id设置角色名
       const params=this.adminForm
-      console.log( this.rolesOptions)
+      console.info(params)
       this.rolesOptions.map(function(value){
-        if(value.role_id==params.role_id){
-          params.role_name=value.role_name
+        console.info(params.roleId+"==="+value.roleId)
+        if(value.roleId==params.roleId){
+          params.roleName=value.roleName
           return
         }
       })
