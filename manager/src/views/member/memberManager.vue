@@ -150,7 +150,8 @@
         label-width="80px"
         inline
       >
-        <div id="left" style="width: 50%;float: left;height: 400px;margin-top: 10px">
+        <div>
+          <div id="left" style="width: 50%;float: left;height: 280px;margin-top: 10px;">
             <el-form-item label="会员名称" prop="merberName">
               <el-input v-model="addMemberForm.memberName" :maxlength="20"></el-input>
             </el-form-item>
@@ -166,58 +167,91 @@
               <el-radio v-model="addMemberForm.sex" :label="1">男</el-radio>
               <el-radio v-model="addMemberForm.sex" :label="0">女</el-radio>
             </el-form-item>
-          <!--手机号码-->
-          <el-form-item label="手机号码" prop="mobile">
-            <el-input v-model.number="addMemberForm.mobile" :maxlength="11"></el-input>
-          </el-form-item>
-          <!--固定电话-->
-          <el-form-item label="固定电话" prop="tel">
-            <el-input v-model.number="addMemberForm.tel" :maxlength="20"></el-input>
-          </el-form-item>
-        </div>
-        <div id="right" style="width: 50%;float: right;height: 400px;margin-top: 10px">
-          <el-form-item label="地区" prop="address" class="form-item-region">
-            <el-input v-model="addMemberForm.address"></el-input>
-          </el-form-item>
-<!--          会员等级-->
-          <el-form-item label="会员等级">
-            <el-select
-              v-model="addMemberForm.level"
-              @change="levelChange"
-              clearable>
-              <el-option
-                v-for="item in levelOptions"
-                :key="item.level_id"
-                :label="item.level_name"
-                :value="item.level_name">
-              </el-option>
-            </el-select>
-          </el-form-item>
-          <!--生日-->
-          <el-form-item name="name" label="生日" prop="birthday">
-            <el-date-picker
-              v-model="addMemberForm.birthday"
-              type="date"
-              :editable="false"
-              value-format="timestamp"
-              placeholder="选择生日"
-              :picker-options="{disabledDate(time) { return time.getTime() > Date.now() }}"
-            ></el-date-picker>
-          </el-form-item>
-          <!--邮箱-->
-          <el-form-item label="邮箱" prop="email">
-            <el-input v-model="addMemberForm.email"></el-input>
-          </el-form-item>
-<!--          会员卡号-->
-          <el-form-item label="卡号" prop="kh">
-            <el-input v-model="addMemberForm.kh" :disabled="true"></el-input>
-          </el-form-item>
+            <!--手机号码-->
+            <el-form-item label="手机号码" prop="mobile">
+              <el-input v-model.number="addMemberForm.mobile" :maxlength="11"></el-input>
+            </el-form-item>
+            <!--固定电话-->
+            <el-form-item label="固定电话" prop="tel">
+              <el-input v-model.number="addMemberForm.tel" :maxlength="20"></el-input>
+            </el-form-item>
+          </div>
+          <div id="right" style="width: 50%;float: right;height: 280px;margin-top: 10px;">
+            <!--          <el-form-item label="地区" prop="address" class="form-item-region">-->
+            <!--            <el-input v-model="addMemberForm.address"></el-input>-->
+            <!--          </el-form-item>-->
+            <el-form-item label="会员等级">
+              <el-select
+                v-model="addMemberForm.levelId"
+                @change="levelChange"
+                clearable>
+                <el-option
+                  v-for="item in levelOptions"
+                  :key="item.level_id"
+                  :label="item.level_name"
+                  :value="item.level_id">
+                </el-option>
+              </el-select>
+            </el-form-item>
+            <!--生日-->
+            <el-form-item name="name" label="生日" prop="birthday">
+              <el-date-picker
+                v-model="addMemberForm.birthday"
+                type="date"
+                :editable="false"
+                placeholder="选择生日"
+                :picker-options="{disabledDate(time) { return time.getTime() > Date.now() }}"
+              ></el-date-picker>
+            </el-form-item>
+            <!--邮箱-->
+            <el-form-item label="邮箱" prop="email">
+              <el-input v-model="addMemberForm.email"></el-input>
+            </el-form-item>
+            <!--          会员卡号-->
+            <el-form-item label="卡号" prop="kh">
+              <el-input v-model="addMemberForm.kh" :disabled="true"></el-input>
+            </el-form-item>
 
-<!--          身份证号-->
-          <el-form-item label="身份证号" prop="midentity">
-            <el-input v-model="addMemberForm.midentity" :disabled="true"></el-input>
+            <!--          身份证号-->
+            <el-form-item label="身份证号" prop="midentity">
+              <el-input v-model="addMemberForm.midentity" :disabled="true"></el-input>
+            </el-form-item>
+          </div>
+        </div>
+        <div style="height:20px;height: 350px ">
+          <!--          地区-->
+          <el-form-item label="详细地址">
+            <el-row :gutter="10">
+              <el-col :span="3" style="padding-left: 0;">
+                <el-form-item label="" prop="provinceId" label-width="0" style="margin-bottom: 0">
+                  <el-select v-model="addMemberForm.provinceId" placeholder="请选择省" @change="provinceChange">
+                    <el-option v-for="province in provinceArr" :key="province.id" :label="province.name" :value="province.id" />
+                  </el-select>
+                </el-form-item>
+              </el-col>
+              <el-col :span="3" style="padding-left: 0;">
+                <el-form-item label="" prop="cityId" label-width="0" style="margin-bottom: 0;">
+                  <el-select v-model="addMemberForm.cityId" placeholder="请选择市" @change="cityChange">
+                    <el-option v-for="city in cityArr" :key="city.id" :label="city.name" :value="city.id" />
+                  </el-select>
+                </el-form-item>
+              </el-col>
+              <el-col :span="3" style="padding-left: 0;">
+                <el-form-item label="" prop="countyId" style="margin-bottom: 0;">
+                  <el-select v-model="addMemberForm.countyId" placeholder="请选择区">
+                    <el-option v-for="county in countyArr" :key="county.id" :label="county.name" :value="county.id" />
+                  </el-select>
+                </el-form-item>
+              </el-col>
+              <el-col :span="5" style="padding-left: 0;">
+                <el-form-item label="" prop="addressDetail" style="margin-bottom: 0;">
+                  <el-input v-model.trim="addMemberForm.address" maxlength="50" placeholder="请输入详细地址" />
+                </el-form-item>
+              </el-col>
+            </el-row>
           </el-form-item>
         </div>
+
         <!---->
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -233,6 +267,7 @@
   import Search from "@/components/TableSearch";
   import * as API_Member from "@/api/member";
   import * as API_Level from "@/api/level"
+  import * as API_Area from "@/api/area"
   // import {Foundation,RegExp } from '../../../ui-utils/index'
 
   export default {
@@ -242,14 +277,20 @@
     },
     data(){
       return{
-        //获取地区的路径
-        api:'http://localhost:7003/regions/@id/children',
         /** 列表loading状态 */
         loading: false,
         /** 编辑会员窗体*/
         editDialogForm:false,
         /** 添加会员窗体是否显示*/
         dialogFormVisible:false,
+        // 所属区域数据源
+        areaArr: [],
+        // 省数据源
+        provinceArr: [],
+        // 市数据源
+        cityArr: [],
+        // 区/县数据源
+        countyArr: [],
         /** 列表参数 */
         params: {
           pageNo: 1,
@@ -265,9 +306,11 @@
         },
         /**添加会员表单*/
         addMemberForm:{
+
         },
         /**添加会员的验证规则*/
         addRepairRules:{
+
 
         },
         pwdType: "password",
@@ -307,6 +350,7 @@
       //改变选择的等级
       levelChange(event){
         //编辑等级列表，为会员等级id赋值
+        this.addMemberForm.levelId=event
         console.log(event)
       },
       /** 搜索事件触发 */
@@ -383,11 +427,16 @@
       /**编辑会员，打开编辑会员窗体*/
       handleEditRepair(index,row){
           this.dialogFormVisible=true
-          this.addMemberForm=row
+          API_Member.getByMemberId(row.memberId).then(res=>{
+            this.getAreaList(0, 'provinceArr')
+            this.getAreaList(res.provinceId, 'cityArr')
+            this.getAreaList(res.cityId, 'countyArr')
+            this.addMemberForm=res
+          })
       },
       submitAddConsumerForm(){
         if (this.addMemberForm.memberId){
-          API_Member.editMember(this.addMemberForm.memberId,this.addMemberForm).then(()=>{
+          API_Member.editMember(this.addMemberForm).then(()=>{
             this.$message.success("编辑成功");
             this.dialogFormVisible = false
             this.GET_MemberList();
@@ -425,11 +474,33 @@
               this.MixinExportJosnToExcel(json, '四火会员管理系统会员基本信息')
           });
       },
+      //根据上级id获取地区列表
+      getAreaList(parentId, areaName) {
+        API_Area.getAreaList({ parentId }).then(res => {
+          this[areaName]= res.data
+
+        }).catch(err => {
+          console.log(err, 'err')
+        })
+      },
+      // 选择省
+      provinceChange(val) {
+        this.getAreaList(val, 'cityArr')
+      },
+      // 选择市
+      cityChange(val) {
+        this.getAreaList(val, 'countyArr')
+      },
 
     },
+    //挂载时执行方法
     mounted() {//初始化请求全部数据
       this.GET_MemberList();
       this.GET_LevelNameList();
+    },
+    //创建时执行
+    created() {
+      this.getAreaList('0', 'provinceArr')
     }
   }
 </script>

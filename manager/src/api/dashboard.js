@@ -76,9 +76,20 @@ export function  getLevelProportion() {
 
 export function  memberGrowthTrend() {
   return request({
-    url:'/admin/index/memberGrowthTrend',
-    method:'get',
-    loading:false,
+    url: '/admin/index/memberGrowthTrend',
+    method: 'get',
+    loading: false,
   })
+}
 
+/**
+ * 各地区各级别会员数量
+ */
+export function  areaCountByLevel(params) {
+  return request({
+    url: '/admin/index/areaCountByLevel',
+    method: 'get',
+    loading: false,
+    params
+  })
 }

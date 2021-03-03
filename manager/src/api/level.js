@@ -76,7 +76,6 @@ export function editLevel(levelId,data) {
   return request({
     url: `/member/level/edit/${levelId}`,
     method: 'post',
-    // headers: { 'Content-Type': 'application/json' },
     data
   })
 }

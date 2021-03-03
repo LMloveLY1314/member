@@ -53,11 +53,27 @@
 
         </div>
       </div>
+<!--    会员各地区各级别占比：地图-->
+    <div>
+      <div class="sh">
+        <el-form :model="levelForm" size="small" :validate-on-rule-change="false" label-width="20px" hide-required-asterisk inline>
+          <el-form-item class="choose" prop="statusArr">
+            <el-select v-model="levelForm.level" placeholder="请选择会员级别" style="width: 180px; margin-left: 20px;" class="select" default-first-option @change="handleLevelChange">
+              <el-option v-for="(item, index) in levelList" :key="index" :label="item.level_name" :value="item.level_id" />
+            </el-select>
+          </el-form-item>
+        </el-form>
+      </div>
+      <div id="areaCountByLevel" :style="{width: '100%', height: '450px',marginTop:'10px'}"></div>
+    </div>
+
+
   </div>
 </template>
 <script>
 import { mapGetters } from 'vuex'
 import  * as API_Dashboard from '@/api/dashboard'
+import * as  API_Level from '@/api/level'
 
 export default {
   name: 'dashboard',
@@ -65,6 +81,14 @@ export default {
     return{
       memberList:[],
       sexData:'',
+      //会员等级
+      levelForm: {
+        level: ''
+      },
+      //会员等级列表
+      levelList: [],
+      memberNumChart:null,
+      resizeTimer: null,
     }
   },
   computed: {
@@ -80,8 +104,46 @@ export default {
     this.drawAgeProportion();
     this.drawRegionProportion();
     this.drawLevelProportion();
+    this.handleLevelChange();
+    this.getMemberLevelList();
+  },
+  beforeDestroy() {
+    if (!this.memberNumChart) {
+      return
+    }
+    this.memberNumChart.dispose()
+    this.memberNumChart = null
   },
   methods: {
+    //获取会员等级列表
+    getMemberLevelList(){
+      API_Level.levelNameList().then((res=>{
+        this.levelList.push({level_name:"全部",level_id:null})
+        for (var i = 0; i < res.length; i++){
+          this.levelList.push(res[i])
+        }
+        console.info(this.levelList)
+      }))
+    },
+
+    //选择会员等级列表
+    handleLevelChange(val){
+      API_Dashboard.areaCountByLevel({levelId:val}).then((res)=>{
+        let list = [...res.data]
+        list = list.map(item => {
+          const a = {}
+          a.name = item.cityName
+          a.value = item.recordCount
+          return a
+        })
+        console.info(list)
+        //开始绘制
+        this.areaCountByLevel(list)
+      })
+      //获取后调用地图
+    },
+    //获取各地区会员数据
+
     //获取最近新增5个会员
     GetNewList(){
       API_Dashboard.getNewMemberList().then((res)=>{
@@ -300,6 +362,231 @@ export default {
           ]
         });
       })
+
+    },
+    //填充数据、绘制地图
+    areaCountByLevel(data){
+      //当各地区差值过大时，导致三个图标会特别大，可以调整一下大小,symbolSize属性的返回值决定了图标大小
+      var name_title = "各地区各级别会员分布情况"
+        // 参考图：https://www.makeapie.com/editor.html?c=xi5eszo651
+        this.memberNumChart = this.$echarts.init(document.getElementById('areaCountByLevel'))
+        // 地图类型
+        var mapName = 'china'
+        const nonezero = []
+        data.map(item => {
+          if (item.value !== 0) {
+            nonezero.push(item)
+          }
+        })
+      const sData = data.sort((a, b) => {
+        return b.value - a.value
+      })
+      var geoCoordMap = {}
+      /* 获取地图数据*/
+      this.memberNumChart.showLoading()
+      var mapFeatures = this.$echarts.getMap(mapName).geoJson.features
+      this.memberNumChart.hideLoading()
+      mapFeatures.forEach((v) => {
+        // 地区名称
+        var name = v.properties.name
+        // 地区经纬度
+        geoCoordMap[name] = v.properties.cp
+      })
+      //定义转化函数
+      var convertData = function(data) {
+        var res = [];
+        for (var i = 0; i < data.length; i++) {
+          var geoCoord = geoCoordMap[data[i].name];
+          if (geoCoord) {
+            res.push({
+              name: data[i].name,
+              value: geoCoord.concat(data[i].value),
+            });
+          }
+        }
+        return res;
+      };
+      //定义option
+      const option = {
+        title: {
+          text: name_title,
+          x: 'center',
+        },
+        tooltip: {
+          trigger: 'item',
+          //formatter:返回的t即是展示的内容
+          formatter: (params) => {
+            console.info(params)
+            let t = params.name + '会员人数：' + params.value+'人'
+            if (params.value.length) {
+              t = params.name + '会员人数：' + params.value[2]+'人'
+            }
+            return t
+          }
+        },
+        visualMap: {
+          show: true,
+          min: 0,
+          max: sData[0].value,
+          left: '3%',
+          top: 'bottom',
+          text: ['高', '低'], // 文本，默认为数值文本
+          calculable: true,
+          seriesIndex: [1],
+          inRange: {
+            color: ['#2c669b', '#389deb'] // 蓝绿
+          }
+        },
+        geo: {
+          show: true,
+          map: mapName,
+          zoom: 1.8,
+          label: {
+            normal: {
+              show: false
+            },
+            emphasis: {
+              show: false
+            }
+          },
+          roam: true,
+          itemStyle: {
+            normal: {
+              areaColor: '#031525',
+              borderColor: '#3B5077'
+            },
+            emphasis: {
+              areaColor: '#2B91B7'
+            }
+          }
+        },
+        series: [{
+          name: '散点',
+          type: 'scatter',
+          coordinateSystem: 'geo',
+          data: convertData(data),
+          symbolSize: (val) => {
+            // 图标最大值设置成50，避免过大导致图形变形
+            var  value=val[2]
+            if (value>50){
+              return 50
+            }
+             return val[2] / 10
+          },
+          label: {
+            normal: {
+              formatter: '{b}',
+              position: 'right',
+              show: true
+            },
+            emphasis: {
+              show: true
+            }
+          },
+          itemStyle: {
+            normal: {
+              color: 'pink'
+            }
+          }
+        },
+          {
+            type: 'map',
+            map: mapName,
+            geoIndex: 0,
+            aspectScale: 0.75, // 长宽比
+            showLegendSymbol: false, // 存在legend时显示
+            label: {
+              normal: {
+                show: true
+              },
+              emphasis: {
+                show: false,
+                textStyle: {
+                  color: '#fff'
+                }
+              }
+            },
+            roam: true,
+            itemStyle: {
+              normal: {
+                areaColor: '#031525',
+                borderColor: '#3B5077'
+              },
+              emphasis: {
+                areaColor: '#2B91B7'
+              }
+            },
+            animation: false,
+            data: data
+          },
+          {
+            name: '点',
+            type: 'scatter',
+            coordinateSystem: 'geo',
+            symbol: 'pin', // 气泡
+            symbolSize: (val) => {
+              //val[2]取到的改地区数值大小，数值多大的，我做一些调整
+              var  value=val[2]
+              if (value>50){
+                return 50
+              }
+              return val[2] / 10
+            },
+            label: {
+              normal: {
+                formatter: '{@[2]}',
+                show: true,
+                textStyle: {
+                  color: '#fff',
+                  fontSize: 9
+                }
+              }
+            },
+            itemStyle: {
+              normal: {
+                color: '#F62157' // 标志颜色
+              }
+            },
+            zlevel: 6,
+            data: convertData(nonezero)
+          },
+          {
+            name: 'Top 5',
+            type: 'effectScatter',
+            coordinateSystem: 'geo',
+            data: convertData(sData.slice(0, 5)),
+            symbolSize: (val) => {
+              var  value=val[2]
+              if (value>50){
+                return 50
+              }
+              return value
+            },
+            showEffectOn: 'render',
+            rippleEffect: {
+              brushType: 'stroke'
+            },
+            hoverAnimation: true,
+            label: {
+              normal: {
+                formatter: '{b}',
+                position: 'right',
+                show: true
+              }
+            },
+            itemStyle: {
+              normal: {
+                color: 'yellow',
+                shadowBlur: 10,
+                shadowColor: 'yellow'
+              }
+            },
+            zlevel: 1
+          }
+
+        ]
+      }
+      this.memberNumChart.setOption(option)
 
     },
     /** 性别格式化 */

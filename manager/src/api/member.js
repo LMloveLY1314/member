@@ -22,12 +22,11 @@ export function getMemberList(params) {
  * @param
  * 添加会员
  * */
-export function addMember(params) {
+export function addMember(data) {
   return request({
-    url: '/member/manager/add',
-    method: 'post',
-    loading: false,
-    params
+    url:'/member/manager/add',
+    method:'post',
+    data
   })
 }
 
@@ -35,12 +34,13 @@ export function addMember(params) {
  * @param
  * 编辑会员
  * */
-export function editMember(memberId,params) {
+export function editMember(data) {
+  //这里data如果换成params，请求参数格式会自动变成get形式，被坑了一下（原理没时间找了）
   return request({
-    url: `/member/manager/edit/${memberId}`,
+    url: '/member/manager/edit',
     method: 'post',
     loading: false,
-    params
+    data
   })
 }
 
@@ -84,6 +84,15 @@ export function deleteMember(memberId) {
 export  function  exportMemberData(){
   return request({
     url: '/member/manager/export/data',
+    method: 'get',
+  })
+}
+
+
+//根据id获取会员详情
+export  function  getByMemberId(param){
+  return request({
+    url: `/member/manager/getById/${param}`,
     method: 'get',
   })
 }

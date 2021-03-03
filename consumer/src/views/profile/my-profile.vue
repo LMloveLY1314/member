@@ -37,7 +37,7 @@
               type="date"
               :min-date="minDate"
               :max-date="maxDate"
-              @confirm="confirmBirthday"
+              @confirm="confirmBirthday()"
       />
     </van-action-sheet>
     <!--登录-->
@@ -143,8 +143,8 @@
         })
       },
       /** 确认生日选择 */
-      confirmBirthday() {
-        this.profileForm.birthday = this.currentDate.getTime() / 1000
+      confirmBirthday(val) {
+        this.profileForm.birthday =val
         this.showBirthdayActionsheet = false
       },
       /** 格式化生日日期 */
