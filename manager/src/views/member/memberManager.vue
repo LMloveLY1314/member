@@ -69,7 +69,7 @@
         <el-table-column
           prop="mobile"
           label="手机号"
-          width="180">
+          width="120">
         </el-table-column>
 
         <el-table-column
@@ -98,7 +98,7 @@
           :formatter="formatterSex" width="80px"
         >
         </el-table-column>
-        <el-table-column label="操作" width="150">
+        <el-table-column label="操作" width="250">
           <template slot-scope="scope">
             <el-button
               size="mini"
@@ -110,6 +110,11 @@
               type="danger"
               @click="handleDeleteMember(scope.$index, scope.row)"
             >禁用</el-button>
+            <el-button
+              size="mini"
+              type="primary"
+              @click="handleOpenWorth(scope.$index, scope.row)"
+            >会员价值</el-button>
           </template>
         </el-table-column>
       </template>
@@ -260,6 +265,58 @@
       </div>
     </el-dialog>
 
+    <el-dialog title="会员价值"
+               :visible.sync="WorthDialogVisible"
+               @open="handleWorthDialogOpen"
+               :close-on-click-modal="false"
+               :close-on-press-escape="false"
+               width="80%"
+
+    >
+      <el-tabs v-model="activeName">
+        <el-tab-pane label="会员消费信息" name="first" >
+          <el-form :model="this.memberWorth"
+            label-width="100px"
+            inline
+          >
+               <div style="width: 40%;float: left;height: 400px;margin-top: 10px;margin-left: 10%">
+
+                  <el-form-item label="会员名称" prop="merberName">
+                    <el-input  v-model="memberWorth.memberName" :maxlength="20"></el-input>
+                  </el-form-item>
+                  <!--性别-->
+                  <el-form-item label="消费次数" class="form-item-sex">
+                    <el-input v-model="memberWorth.frequency"></el-input>
+                  </el-form-item>
+                  <el-form-item label="最近消费时间" prop="tel">
+                    <el-input v-model="memberWorth.recency":maxlength="20"></el-input>
+                  </el-form-item>
+
+          </div>
+               <div style="width: 50%;float: right;height: 400px;margin-top: 10px;">
+
+              <el-form-item label="会员卡号" >
+                <el-input v-model="memberWorth.kh"  :maxlength="20"></el-input>
+              </el-form-item>
+              <!--密码-->
+              <el-form-item label="平均消费金额" prop="password">
+                <el-input  v-model="memberWorth.average"  :maxlength="20"></el-input>
+              </el-form-item>
+              <!--性别-->
+
+            </div>
+          </el-form>
+        </el-tab-pane>
+        <el-tab-pane label="会员价值增长趋势" name="second" >
+          <div id="memberWorthTrend" :style="{width: '100%', height: '450px'}"></div>
+        </el-tab-pane>
+      </el-tabs>
+      <div slot="footer">
+        <el-button @click="WorthDialogVisible = false">返回</el-button>
+      </div>
+    </el-dialog>
+
+
   </div>
 </template>
 
@@ -268,7 +325,6 @@
   import * as API_Member from "@/api/member";
   import * as API_Level from "@/api/level"
   import * as API_Area from "@/api/area"
-  // import {Foundation,RegExp } from '../../../ui-utils/index'
 
   export default {
     name: "memberManager",
@@ -283,6 +339,8 @@
         editDialogForm:false,
         /** 添加会员窗体是否显示*/
         dialogFormVisible:false,
+        /**会员价值图谱窗体**/
+        WorthDialogVisible:false,
         // 所属区域数据源
         areaArr: [],
         // 省数据源
@@ -315,7 +373,18 @@
         },
         pwdType: "password",
         levelOptions:[],//会员等级名称列表
-
+        //默认选择会员价值图标卡片
+        activeName: 'second',
+        memberWorth:{
+          kh:'',
+          memberName:'',
+          recency:'',
+          frequency:'',
+          average:'',
+          recencyCount:'',
+          worthScore:'',
+          worthLevel:''
+        },
       }
     },
     methods:{
@@ -327,6 +396,88 @@
       //
       handleDialogOpen() {
         setTimeout(() => { this.$refs['adminForm'].clearValidate() })
+      },
+      //打开会员价值图谱窗体
+      handleWorthDialogOpen(){
+          this.WorthDialogVisible=true
+
+      },
+      //请求数据，绘制会员价值曲线
+      memberWorthTrend(data){
+        let memberWorth = this.$echarts.init(document.getElementById('memberWorthTrend'))
+        // 绘制图表
+        memberWorth.setOption({
+          tooltip: {
+            trigger: 'axis',
+            axisPointer: {
+              type: 'cross',
+              crossStyle: {
+                color: '#999'
+              }
+            }
+          },
+          //显示工具栏
+          toolbox: {
+            feature: {
+              dataZoom: {
+                yAxisIndex: 'none'
+              },
+              dataView: {show: true, readOnly: false},
+              magicType: {show: true, type: ['line', 'bar']},
+              restore: {show: true},
+              saveAsImage: {show: true}
+            }
+          },
+          legend: {
+            data: ['会员价值得分', '会员价值等级'],
+          },
+          xAxis: {
+            type: 'category',
+            data: data.xAxis,
+            axisPointer: {
+              type: 'shadow'
+            }
+          },
+          yAxis: [
+            {
+              type: 'value',
+              name: '价值得分',
+              axisLabel: {
+                formatter: '{value} 元'
+              }
+            },
+            {
+              type: 'value',
+              name: '价值等级',
+              min: 0,
+              max: 6,
+              interval: 1,
+            }
+          ],
+          series: [
+            {
+            name:'会员价值得分',
+            data: data.score,
+            type: 'line',
+            markPoint: {
+              data: [
+                {type: 'max', name: '最大值'},
+                {type: 'min', name: '最小值'}
+              ]
+            }
+            },
+            {name:'会员价值等级',
+            data: data.level,
+            type: 'line',
+            yAxisIndex: 1,
+            markPoint: {
+              data: [
+                {type: 'max', name: '最大值'},
+                {type: 'min', name: '最小值'}
+              ]
+            },
+          }]
+        });
       },
       //发送请求，获取会员列表
       GET_MemberList() {
@@ -423,6 +574,22 @@
             });
           })
           .catch(() => {});
+      },
+      //打开会员价值图谱窗体
+      handleOpenWorth(index, row){
+        this.WorthDialogVisible=true
+        API_Member.memberWorthTrend(row.kh).then(res => {
+            if (res.code==0){
+              this.memberWorthTrend(res.data)
+            }
+        })
+        API_Member.memberCurrentWorth(row.kh).then(result => {
+          if (result.code==0){
+            this.memberWorth=result.data
+            console.info(this.memberWorth)
+          }
+
+        })
       },
       /**编辑会员，打开编辑会员窗体*/
       handleEditRepair(index,row){

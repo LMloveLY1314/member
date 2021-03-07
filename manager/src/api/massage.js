@@ -32,11 +32,23 @@ export function  deleteNotice(id) {
  * 发布公告
  * */
 
-export function  addNotice(params) {
+export function  addNotice(data) {
     return request({
         url: `admin/system/notice/add`,
         method: 'post',
         loading: false,
-        params
+        data
     })
+}
+
+/**
+ * 发布公告
+ * */
+
+export function  getNoticeById(param) {
+  return request({
+    url: `admin/system/notice/${param}`,
+    method: 'get',
+    loading: false,
+  })
 }

@@ -96,3 +96,19 @@ export  function  getByMemberId(param){
     method: 'get',
   })
 }
+
+//根据卡号获取会员价值图谱
+export  function  memberWorthTrend(param){
+  return request({
+    url: `/member/manager/memberWorthTrend/${param}`,
+    method: 'get',
+  })
+}
+
+//根据卡号获取会员当前价值
+export  function  memberCurrentWorth(param){
+  return request({
+    url: `/member/manager/memberCurrentWorth/${param}`,
+    method: 'get',
+  })
+}

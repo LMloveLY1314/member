@@ -43,8 +43,18 @@
                         label="消息内容">
                 </el-table-column>
 
-                <el-table-column label="操作" width="150">
+                <el-table-column label="操作" width="300">
                     <template slot-scope="scope">
+                      <el-button
+                        size="mini"
+                        type="primary" plain
+                        @click="handleGetNotice(scope.$index, scope.row,1)"
+                      >查看</el-button>
+                      <el-button
+                        size="mini"
+                        type="primary"
+                        @click="handleGetNotice(scope.$index, scope.row,0)"
+                      >编辑</el-button>
                         <el-button
                                 size="mini"
                                 type="danger"
@@ -68,13 +78,14 @@
         </en-table-layout>
 <!--        添加公告窗体-->
         <el-dialog
-                title="发布公告"
+                :title="addNoticeForm.id?this.type==1?'查看公告':'编辑公告':'发布公告' "
                 :visible.sync="dialogFormVisible"
                 width="500px"
                 :close-on-click-modal="false"
                 :close-on-press-escape="false"
+                @close="closeDialog"
         >
-            <el-form :model="addNoticeForm" :rules="addNoticeRules"  label-width="100px">
+            <el-form :model="addNoticeForm"  ref="addNoticeForm" :rules="addNoticeRules"  label-width="100px" @close="closeDialog">
                 <el-form-item label="消息标题" prop="title">
                     <el-input @input="change($event)" v-model="addNoticeForm.title" :maxlength="20" placeholder="标题在20字以内"></el-input>
                 </el-form-item>
@@ -96,8 +107,8 @@
                 </el-form-item>
             </el-form>
             <span slot="footer" class="dialog-footer">
-        <el-button @click="dialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="submitAddNoticeForm">确 定</el-button>
+        <el-button @click="dialogFormVisible = false">取 消</el-button>
+        <el-button v-if="this.type==0" type="primary" @click="submitAddNoticeForm">确 定</el-button>
       </span>
         </el-dialog>
 
@@ -131,19 +142,19 @@
                     title:'',
                     content:'',
                     type:'',
+                    id:null,
+                    createTime:null,
                 },
                 /**添加公告的验证规则*/
                 addNoticeRules:{
 
                 },
+               /** 编辑/查看公告：edit*/
+                type:0,
 
             }
         },
         methods:{
-            // change() {
-            //     this.$forceUpdate()
-            // },
-            //发送请求，获取维修师傅列表数据
             GET_NoticeList() {
                 this.loading = true
                 API_Notice.getNoticeList(this.params).then(response => {
@@ -183,6 +194,15 @@
                     })
                     .catch(() => {});
             },
+            //查看公告详情
+            handleGetNotice(index, row,type){
+              //编辑或查看
+              this.type=type
+              this.dialogFormVisible=true
+              API_Notice.getNoticeById(row.id).then((res)=>{
+                this.addNoticeForm=res
+              })
+            },
             submitAddNoticeForm(){
                 const form=this.addNoticeForm
                 console.log(form)
@@ -193,7 +213,9 @@
                 })
             },
             closeDialog(){
-
+              this.$refs['addNoticeForm'].resetFields();
+              this.dialogFormVisible=false
+              this.type=0
             },
 
         },

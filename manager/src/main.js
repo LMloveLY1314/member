@@ -19,13 +19,12 @@ Vue.mixin(mixin)
 
 // 全局注册echarts(baidu画图工具)
 import echarts from "echarts"
-//
 Vue.prototype.$echarts = echarts
-
-import '@/permission' // permission control
 //引入中国地图并注册到echarts
 import china from 'echarts/map/json/china.json'
 echarts.registerMap('china', china)
+import '@/permission' // permission control
+
 
 Vue.use(ElementUI, {
   size: 'medium', // set element-ui default size

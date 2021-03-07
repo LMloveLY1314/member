@@ -32,7 +32,18 @@
       </el-card>
     </div>
 <!--   会员增长趋势折线图 -->
+
+    <div :style="{marginTop:'10px'}">
+      <el-date-picker
+        v-model="growthYear"
+        type="year"
+        :change="choiceYear()"
+        format="yyyy"
+        value-format="yyyy"
+        placeholder="选择年">
+      </el-date-picker>
       <div id="growthTrend" :style="{width: '100%', height: '450px',marginTop:'10px'}"></div>
+    </div>
 
 <!--    各类型会员占比-->
     <div>
@@ -79,6 +90,8 @@ export default {
   name: 'dashboard',
   data(){
     return{
+      //选择会员增长年份
+      growthYear:'',
       memberList:[],
       sexData:'',
       //会员等级
@@ -102,7 +115,6 @@ export default {
     this.drawLine();
     this.drawSexProportion();
     this.drawAgeProportion();
-    this.drawRegionProportion();
     this.drawLevelProportion();
     this.handleLevelChange();
     this.getMemberLevelList();
@@ -115,6 +127,10 @@ export default {
     this.memberNumChart = null
   },
   methods: {
+    //会员增长趋势年份选择
+    choiceYear(){
+      this.drawLine();
+    },
     //获取会员等级列表
     getMemberLevelList(){
       API_Level.levelNameList().then((res=>{
@@ -159,11 +175,17 @@ export default {
     //构建会员增长趋势折线图
     drawLine(){
       // 基于准备好的dom，初始化echarts实例
-    API_Dashboard.memberGrowthTrend().then((res)=>{
+    API_Dashboard.memberGrowthTrend({year:this.growthYear}).then((res)=>{
       let growthTrend = this.$echarts.init(document.getElementById('growthTrend'))
       // 绘制图表
       growthTrend.setOption({
-        title: { text: '本年度各月份会员增长趋势' },
+        title: { text: '各年度各月份会员增长趋势' },
+        legend: {
+          data: ['会员数']
+        },
+        tooltip: {
+          trigger: 'axis'
+        },
         xAxis: {
           type: 'category',
           data: res.name
@@ -172,8 +194,15 @@ export default {
           type: 'value'
         },
         series: [{
+          name:'会员数',
           data: res.data,
-          type: 'line'
+          type: 'line',
+          markPoint: {
+            data: [
+              {type: 'max', name: '最大值'},
+              {type: 'min', name: '最小值'}
+            ]
+          },
         }]
       });
     })
@@ -271,52 +300,6 @@ export default {
         });
       })
 
-
-    },
-    //  各会员各地区占比
-    drawRegionProportion(){
-      API_Dashboard.getRegionProportion().then((res)=>{
-        let regionProportion = this.$echarts.init(document.getElementById('regionProportion'))
-        // 绘制图表
-        regionProportion.setOption({
-          title: {
-            text: '各地区会员占比',
-            left: 'center'
-          },
-          tooltip: {
-            trigger: 'item',
-            formatter: '{a} <br/>{b}: {c} ({d}%)'
-          },
-          legend: {
-            orient: 'vertical',
-            left: 10,
-            data: res.name
-          },
-          series: [
-            {
-              name: '各地区会员占比',
-              type: 'pie',
-              radius: ['50%', '70%'],
-              avoidLabelOverlap: false,
-              label: {
-                show: false,
-                position: 'center'
-              },
-              emphasis: {
-                label: {
-                  show: true,
-                  fontSize: '30',
-                  fontWeight: 'bold'
-                }
-              },
-              labelLine: {
-                show: false
-              },
-              data:res.data
-            }
-          ]
-        });
-      })
 
     },
     //  各会员各等级占比

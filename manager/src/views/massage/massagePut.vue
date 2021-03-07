@@ -66,6 +66,12 @@
             </el-pagination>
         </en-table-layout>
 <!--        添加公告窗体-->
+        <en-members-picker
+          :limit="1"
+          :show="dialogGoodsPickerVisible"
+          @close="dialogGoodsPickerVisible = false"
+        />
+
         <el-dialog
                 title="发布公告"
                 :visible.sync="dialogFormVisible"
@@ -105,11 +111,13 @@
 
 <script>
     import Search from "../../components/TableSearch/index";
+    import EnMembersPicker from "../../components/MemberPicker/index";
     import * as API_Notice from "@/api/massage";
     export default {
         name: "massagePut",
         components:{
             Search,
+          EnMembersPicker
         },
         data(){
             return{
@@ -135,6 +143,10 @@
                 addNoticeRules:{
 
                 },
+              // 会员选择器显示
+              dialogGoodsPickerVisible: false,
+              // 已选会员
+              selectedGoods: ''
 
             }
         },

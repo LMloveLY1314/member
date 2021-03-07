@@ -74,11 +74,12 @@ export function  getLevelProportion() {
  * 获取本年度每月会员增长趋势
  * */
 
-export function  memberGrowthTrend() {
+export function  memberGrowthTrend(params) {
   return request({
     url: '/admin/index/memberGrowthTrend',
     method: 'get',
     loading: false,
+    params
   })
 }
 
